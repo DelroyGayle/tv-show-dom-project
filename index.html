@@ -11,6 +11,30 @@
   <body>
     <div id="root"></div>
 
+    <div class="mainHeading">MOVIES GALORE!</div>
+    <!-- Display Info such as the number of episodes 73/73 -->
+    <div class="display-info">
+      <div>
+        <p class="display-message"></p>
+      </div>
+      <!-- Dropdown menu -->
+      <select name="select-menu" id="select-menu"></select>
+      <!-- Search -->
+      <div class="thesearchbar">
+        <input
+          type="text"
+          id="movie-query"
+          name="q"
+          placeholder="Movies & Episodes Search"
+        />
+      </div>
+    </div>
+    <!-- Episodes Display Grid -->
+    <div class="gridDisplay scroll"></div>
+    <!-- TVMaze.com info -->
+    <footer class="footer">
+      <div class="tvmaze-info"></div>
+    </footer>
     <!-- Loads a provided function called getAllEpisodes() which returns all episodes -->
     <script src="episodes.js"></script>
 
