@@ -81,14 +81,7 @@ function createAllEpisodes(index) {
     text.innerText = episodeInfo;
     episodeDiv.appendChild(text); // add the title
 
-    const imageDiv = document.createElement('div'); // div for an image
-    imageDiv.classList.add('image');
-    episodeDiv.appendChild(imageDiv);
-
-    const img = document.createElement('img');
-    img.src = source.image.medium;
-    img.alt = episodeInfo;
-    episodeDiv.appendChild(img); // add the image
+    addImage(episodeDiv,source,episodeInfo);
 
     // Remove all <p></p> then add the text using <span>
     const summary = handle_paragraph(source.summary);
@@ -96,13 +89,17 @@ function createAllEpisodes(index) {
 
     // add to main content
     mainDisplayDiv.appendChild(episodeDiv); 
+}
 
-    if ((index+1) % 3 === 0) // MAKE THE 4TH COLUMN A GAP BY CREATING AN EMPTY DIV
-    {
-           const blankColumn = document.createElement('div'); // main 'div' to append to
-           mainDisplayDiv.appendChild(blankColumn);
-    }
-
+function addImage(episodeDiv,source,episodeInfo) {
+    const imageDiv = document.createElement('div'); // div for an image
+    imageDiv.classList.add('image'); // apply class for padding etc
+     
+    const img = document.createElement('img');
+    img.src = source.image.medium;
+    img.alt = episodeInfo;
+    imageDiv.appendChild(img) // add the image
+    episodeDiv.appendChild(imageDiv);
 }
 
 // EG Winter is Coming - S01E01
@@ -115,10 +112,14 @@ function fetchEpisodeSeason_Suffix(info) {
         return `S${String(info.season).padStart(2,"0")}E${String(info.number).padStart(2,"0")}`;
 }
 
+function removeHTML(text) {
+  // Remove any <p></p> <br></br>
+  return text.replaceAll(/<\/?(p|br)>/ig,"");
+}
 
 // Instead of using innerHtml, remove the <p></p> and use innerText instead
 function handle_paragraph(text) {
-      text = text.replace(/<\/?p>/ig,""); // remove any <p> </p>
+      text = removeHTML(text); // remove any <p> </p>
       let paragraph = document.createElement("p");
           paragraph.innerText = text;
           return paragraph;
@@ -146,6 +147,7 @@ function searchFunction(useThisValue) {
 
   for (let i = 0; i < searchResults.length; i++)
          displaySearchResults(i,searchResults[i],lowerCase);
+
   // Display the number of episodes found       
   displayMessage[0].innerText = `Displaying ${searchResults.length}/${allEpisodesTotal} episodes.`;
 }
@@ -169,29 +171,16 @@ function displaySearchResults(index,source,lowerCase) {
     
     h1Element.classList.add('episode-title');
     episodeDiv.appendChild(h1Element);
-
-    const imageDiv = document.createElement('div'); // div for an image
-    imageDiv.classList.add('image');
-    episodeDiv.appendChild(imageDiv);
-
-    const img = document.createElement('img');
-    img.src = source.image.medium;
-    img.alt = episodeInfo;
-    episodeDiv.appendChild(img)
+    
+    addImage(episodeDiv,source,episodeInfo);
 
     // change into <span> any occurrence of the search text found within the summary
     // in order to highlight
 
-    text = source.summary.replace(/<\/?p>/ig,""); // remove any <p> </p>
+    text = removeHTML(source.summary); // remove any <p> </p>    
     processText(text,lowerCase,"",episodeDiv);
    
     mainDisplayDiv.appendChild(episodeDiv);
-
-    if ((index+1) % 3 === 0) // MAKE THE 4TH COLUMN A GAP BY CREATING AN EMPTY DIV
-    {
-           const blankColumn = document.createElement('div'); // main 'div' to append to
-           mainDisplayDiv.appendChild(blankColumn);
-    }
 }
 
 // NOTE: has to be <span> because <p> will place the new text on to the next line
@@ -209,11 +198,6 @@ function processText(text,lowerCase,extraText,result) {
 
       let paragraph,aString;
       let len = lowerCase.length;
-
-      // Add a <p></p> to create a space underneath the image
-      paragraph = document.createElement("p");
-      result.appendChild(paragraph); // add to element     
-      // Thereafter use <span>
 
       while (true) {
             let p = lowerText.indexOf(lowerCase);

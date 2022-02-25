@@ -39,11 +39,14 @@ body {
   font-size: 1em;
 }
 
-.gridDisplay {
+.mainpad {
   padding-left: 3em;
   padding-right: 3em;
+}
+
+.gridDisplay {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 3em;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 3em;
 }
 
@@ -81,4 +84,8 @@ body {
 
 .tvmaze-info a:visited {
   color: var(--yellow);
+}
+
+.image {
+  padding-bottom: 1em;
 }
