@@ -18,13 +18,6 @@
   text-decoration: underline;
 }
 
-/* //++ */
-.showname {
-  font-size: 2em;
-  text-align: center;
-  font-weight: 400;
-}
-
 body {
   background: #f2f2f2;
   font-family: "Open Sans", sans-serif;
