@@ -18,7 +18,7 @@
   text-decoration: underline;
 }
 
-/* //++ */
+/* Added a field to display the name of the show */
 .showname {
   font-size: 2em;
   text-align: center;
