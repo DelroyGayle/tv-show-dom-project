@@ -391,6 +391,8 @@ function processText(text,lowerCase,extraText,result) {
 
 function jumpToEpisode(event) {
 
+    let delay = 3000; // see below
+
   // If search results are currently being displayed
   // reset display first by showing ALL episodes
     if (searchText !== "")
@@ -402,15 +404,36 @@ function jumpToEpisode(event) {
        showAll(false) // show all episodes
     }
 
+/*
+   Originally for the 'border effect :-
+   I was using episode.classList.toggle('blue-border'); a constant delay of 3000 and setInterval
+   However some inconsistencies appeared at Level 400 when the 'same' episode is selected more than once in a row!
+   So I now use episode.classList.add('blue-border'); a variable 'delay' with an initial value of 3000
+   and setTimeout
+*/
     let episode = document.getElementById(event.target.value);
+
+    if (episode.style.border != "") // bug fix for Level 400: necessary to display border properly ???
+    {
+             episode.style.border="";
+             delay+=3000// extend the delay
+    }
+
     // set focus on the selected episode
     episode.setAttribute('tabindex', '-1'); 
     episode.focus();
     episode.removeAttribute('tabindex')
+
     // reset the dropdown menu
     episodeSelectMenu.selectedIndex = 0;
-    episode.classList.toggle('blue-border');
-    setInterval(function(episode) {episode.style.border = "none";},3000, episode);
+
+    // Border Functionality
+    episode.classList.add('blue-border');
+    setTimeout(function(episode) {episode.style.border = "none";},3000, episode);
+    if (delay>3000) { // bug fix for Level 400: need to REPEAT identical Timeout to display border properly
+                    episode.classList.add('blue-border');
+                    setTimeout(function(episode) {episode.style.border = "none";},delay, episode);
+                    }   
 }
 
 function selectShow(event) {
