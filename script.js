@@ -1,18 +1,38 @@
 //You can edit ALL of the code here
 
 
-// testing Level300
+// Level 400 Changes - Add a Show Selector
 
 // Global Variables/Settings
   const mainDisplayDiv = document.querySelector(".gridDisplay");
   const tvMazeInfo = document.querySelector(".tvmaze-info"); // tvMaze info
   const searchBar = document.getElementById("movie-query"); // The Search Bar
   const displayMessage = document.getElementsByClassName("display-message");
-  const selectMenu = document.getElementById("select-menu");
+  const episodeSelectMenu = document.getElementById("episode-select-menu"); // Episode Selector
+  const showSelectMenu = document.getElementById("show-select-menu"); // Show Selector
+  const errorMessagesElement = document.getElementsByClassName("error-messages");
+  const showName = document.getElementsByClassName("showname");
+  const DEFAULT_SHOWID = 82 // i.e. Game of Thrones 
+
+
+  const FETCHOK = 200;
+  const BADURL = 404;
+  const SERVER_ERROR = 500;
+
+  let allShows;
+  let allShowsTotal;
+  let showNumber = 0;
+  let padSize;
+  let errorMessages;
+  let firstFetch = true;
+  let fetchErrorOccurred = false;
+  let saveAllEpisodes;
+  let saveShowNumber;
 
 // Event Listeners
   searchBar.addEventListener("keyup", searchFunction);
-  selectMenu.addEventListener("change",jumpToEpisode);
+  episodeSelectMenu.addEventListener("change",jumpToEpisode);
+  showSelectMenu.addEventListener("change",selectShow);
 
   let tvmInfoDiv;
   let allEpisodes;
@@ -23,34 +43,164 @@
   window.onload = setup;
 
 function setup() {
-  allEpisodes = getAllEpisodes();
-  allEpisodesTotal = allEpisodes.length;
+  // Retrieve all available shows   
+  allShows = getAllShows();
+  allShowsTotal = allShows.length;
+  showNumber = 0;
+  showNumber = allShows.findIndex(element => element.id === DEFAULT_SHOWID);
+  errorMessages = "";
+
+  fetchShowAndEpisodes();
+}
+
+
+function fetchShowAndEpisodes() {
+      let currentShowID = allShows[showNumber].id; // Fetch Show ID from the array
+      let fetchRequest = `https://api.tvmaze.com/shows/${currentShowID}/episodes`;
+      fetchErrorOccurred = false;
+
+      fetch(fetchRequest)
+        .then(response => {
+                let status = response.status;
+
+                if (status === 200) // successful FETCH
+                {
+                    return response.json(); // CHAIN THE JSON DATA
+                }
+
+                else if (status === 500) {
+                    alert("An Internal Server Error has occurred.\nPlease investigate your Server Application.");
+                    fetchErrorOccurred = true;
+                    throw new Error(`An Error Has Occurred. Error Code = ${status}`); // Terminate the program
+                }
+
+                else if (status === 404) {
+                    alert(`It appears that An Incorrect Link Has Been Used.\nPlease Check This Link :"${currentShowID}"`);
+                    errorMessages += `<p>404 Error Occurred wuth ${currentShowID}</p>`;
+                    fetchErrorOccurred = true;
+                    handleFetchError();
+                }
+
+                else {
+                    let message = `An Error Has Occurred whilst loading "${currentShowID}". Error Code = ${status}`; 
+                    alert(message);
+                    errorMessages += `<p>${message}</p>`;
+                    fetchErrorOccurred = true;
+                    handleFetchError();
+                };               
+            })
+
+        .then(data => {
+                           // Retrieve all the episodes
+                           allEpisodes = data;
+                           allEpisodesTotal = allEpisodes.length;
+                           padding_setup();
+                           episodes_setup();
+                           firstFetch = false;
+                      })
+
+        .catch(error => {
+                           let message = `There is an issue regarding: ${fetchRequest} - Show: ${allShows[showNumber].name}`;
+                           alert(message + `\nThe data structure of this show does not match the expected Data Structure of an Episode.`);
+                           errorMessages += `<p>${message}</p>`;
+                           fetchErrorOccurred = true;
+                           handleFetchError();
+                        });
+}
+
+function handleFetchError() {
+         if (firstFetch) { // This happened at the very beginning of the program
+                           // i.e. the first ever Fetch, so abort
+                           alert("Catastrophic error has occurred - investigate 'shows.js' - it appears to be corrupted");
+                           throw new Error(`Could not load shows.`); // Terminate the projsgram
+                         };
+
+         // Otherwise Restore Previous Show & Redisplay the Episodes
+        allEpisodes = [...saveAllEpisodes];
+        allEpisodesTotal = allEpisodes.length;
+        showNumber = saveShowNumber;
+        episodes_setup();
+}
+
+function padding_setup() {
+        let len = String(allEpisodesTotal).length; // how many digits does the total number of shows have?
+        if (len <= 2) 
+              padSize = 2;
+        else  
+              padSize = len;
+}
+
+function episodes_setup() {     
+
+  // remove previous display
+    removeChildren(mainDisplayDiv); 
+    removeChildren(episodeSelectMenu);
+    removeChildren(showSelectMenu);
+    removeChildren(tvmInfoDiv);
+    removeChildren(tvMazeInfo);
 
 // set up the table and dropdown menu for ALL episodes
-  let option = document.createElement('option');
-  option.value = "";
-  option.text = "Select an episode ..."; // Placeholder
-  selectMenu.appendChild(option);
-  showAll(true); // display all episodes
+    let option = document.createElement('option');
+    option.value = "";
+    option.text = "Select a show ..."; // Placeholder
+    showSelectMenu.appendChild(option);
+    populateShowMenu();
+
+// set up the table and dropdown menu for ALL episodes
+    option = document.createElement('option');
+    option.value = "";
+    option.text = "Select an episode ..."; // Placeholder
+    episodeSelectMenu.appendChild(option);
+
+    showAll(true); // display all episodes
 
        
  // Info regarding TVMaze.com
  // EG <a href="www.tvmaze.com">The movies displayed on this site have been sourced from TVMaze.com</a>
    
-  tvmInfoDiv = document.createElement('div');
-  let paragraph = document.createElement('span');
-  paragraph.innerText = "Please note: The movies displayed on this site have been sourced from ";
-  tvmInfoDiv.appendChild(paragraph); 
-  let theLink = document.createElement("a");
-  theLink.href = "https://www.tvmaze.com/";        
-  theLink.textContent = "TVMaze.com";
-  theLink.setAttribute('target', '_blank'); // Open in another tab
+    tvmInfoDiv = document.createElement('div');
+    let paragraph = document.createElement('span');
+    paragraph.innerText = "Please note: The movies displayed on this site have been sourced from ";
+    tvmInfoDiv.appendChild(paragraph); 
+    let theLink = document.createElement("a");
+    theLink.href = "https://www.tvmaze.com/";        
+    theLink.textContent = "TVMaze.com";
+    theLink.setAttribute('target', '_blank'); // Open in another tab
   
   // Recommended setting: https://www.freecodecamp.org/news/how-to-use-html-to-open-link-in-new-tab/
-  theLink.setAttribute('rel', 'noreferrer noopener');
+    theLink.setAttribute('rel', 'noreferrer noopener');
   
-  tvmInfoDiv.appendChild(theLink);
-  tvMazeInfo.appendChild(tvmInfoDiv);
+    tvmInfoDiv.appendChild(theLink);
+    tvMazeInfo.appendChild(tvmInfoDiv);
+
+    if (errorMessages != "") // There were issues regarding the Fetching of Shows - display error messages in the Footer
+           errorMessagesElement[0].innerHTML = errorMessages;
+
+    showName[0].innerText = allShows[showNumber].name; // Display the name of the show
+    searchBar.focus(); // Set focus here      
+}
+
+function populateShowMenu() {
+     // At the beginning of the program
+     // Sort all the shows into alphabetical (case-insensitive) order
+     if (firstFetch) {
+         allShows.sort(function (show1, show2) {
+                        let showX = show1.name.toLowerCase();
+                        let showY = show2.name.toLowerCase();
+                        return showX == showY ? 0 : showX > showY ? 1 : -1;
+                      });
+         showNumber = allShows.findIndex(element => element.id === DEFAULT_SHOWID);
+         // Doubtful but just in case 'Game of Thrones' no longer exists
+         if (showNumber < 0)
+                  showNumber = 0;
+                    };
+
+     for (let i=0;i<allShows.length;i++) {
+              let option = document.createElement('option');
+              option.value =  i // allShows[i].id; // EG id: 82 for 'Game of Thrones'
+              option.text = allShows[i].name; // EG 'Game of Thrones'
+              showSelectMenu.appendChild(option);
+                                         };  
 }
 
 function makePageForEpisodes(episodeList) {
@@ -67,15 +217,16 @@ function showAll(setup_options) {
                           let option = document.createElement('option');
                           option.value = fetchEpisodeSeason_Suffix(allEpisodes[i]); // EG 'S01E01'
                           option.text = fetchEpisodeSeason_Full(allEpisodes[i]); // EG Winter is Coming - S01E01
-                          selectMenu.appendChild(option);
+                          episodeSelectMenu.appendChild(option);
                                 }           
-       }
+       };
        displayMessage[0].innerText = `Displaying ${allEpisodesTotal}/${allEpisodesTotal} episodes.`;
 }
 
 function createAllEpisodes(index) {
     const episodeDiv = document.createElement('div'); // main 'div' to append to
     const source = allEpisodes[index]; // Entire Episode Entry
+
     episodeDiv.setAttribute("id",fetchEpisodeSeason_Suffix(source)); // EG S01E01
 
     let episodeInfo = fetchEpisodeSeason_Full(source); // EG Winter is Coming - S01E01
@@ -101,18 +252,18 @@ function addImage(episodeDiv,source,episodeInfo) {
     const img = document.createElement('img');
     img.src = source.image.medium;
     img.alt = episodeInfo;
-    imageDiv.appendChild(img) // add the image
+    imageDiv.appendChild(img); // add the image
     episodeDiv.appendChild(imageDiv);
 }
 
 // EG Winter is Coming - S01E01
 function fetchEpisodeSeason_Full(info) {
-        return `${info.name} - S${String(info.season).padStart(2,"0")}E${String(info.number).padStart(2,"0")}`;
+        return `${info.name} - S${String(info.season).padStart(padSize,"0")}E${String(info.number).padStart(padSize,"0")}`;
 }
 
 // EG 'S01E01'
 function fetchEpisodeSeason_Suffix(info) {
-        return `S${String(info.season).padStart(2,"0")}E${String(info.number).padStart(2,"0")}`;
+        return `S${String(info.season).padStart(padSize,"0")}E${String(info.number).padStart(padSize,"0")}`;
 }
 
 function removeHTML(text) {
@@ -157,6 +308,9 @@ function searchFunction(useThisValue) {
 
 // remove HTML nodes
 function removeChildren(node) {
+     if (!node)
+            return; // currently undefined
+
      while( node.firstChild )
               node.removeChild( node.firstChild );
 }
@@ -254,7 +408,18 @@ function jumpToEpisode(event) {
     episode.focus();
     episode.removeAttribute('tabindex')
     // reset the dropdown menu
-    selectMenu.selectedIndex = 0;
+    episodeSelectMenu.selectedIndex = 0;
     episode.classList.toggle('blue-border');
     setInterval(function(episode) {episode.style.border = "none";},3000, episode);
+}
+
+function selectShow(event) {
+       // reset these values
+       searchText = "";
+       searchBar.value = "";
+       // Make a copy of the current Episodes details; just in case an error occurs
+       saveAllEpisodes = [...allEpisodes];
+       saveShowNumber = showNumber;
+       showNumber = +event.target.value; // this is the selected show's details position in the allShows array
+       fetchShowAndEpisodes() // Load the episodes
 }

@@ -13,13 +13,18 @@
     <div id="root"></div>
 
     <div class="mainHeading">MOVIES GALORE!</div>
+    <!-- Added a field to display the name of the show -->
+    <h2 class="showname"></h2>
     <!-- Display Info such as the number of episodes 73/73 -->
+    <div>
+      <p class="display-message"></p>
+    </div>
     <div class="display-info">
-      <div>
-        <p class="display-message"></p>
-      </div>
-      <!-- Dropdown menu -->
-      <select name="select-menu" id="select-menu"></select>
+      <!-- Dropdown menus -->
+      <!-- Show Selector-->
+      <select name="show-select-menu" id="show-select-menu"></select>
+      <!-- Episode Selector-->
+      <select name="episode-select-menu" id="episode-select-menu"></select>
       <!-- Search -->
       <div class="thesearchbar">
         <input
@@ -38,6 +43,9 @@
     <!-- TVMaze.com info -->
     <footer class="footer">
       <div class="tvmaze-info"></div>
+      <br />
+      <br />
+      <div class="error-messages"></div>
     </footer>
 
     <!-- Loads a provided function called getOneShow which returns data regarding "Game Of Thrones" -->

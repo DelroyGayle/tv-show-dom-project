@@ -18,16 +18,19 @@
   text-decoration: underline;
 }
 
-/* //++ */
-.showname {
-  font-size: 2em;
-  text-align: center;
-  font-weight: 400;
-}
-
 body {
   background: #f2f2f2;
   font-family: "Open Sans", sans-serif;
+}
+
+.showname {
+  text-align: center;
+  font-family: "Arial Bold";
+  font-size: 2em;
+}
+
+.display-message {
+  text-align: center;
 }
 
 .display-info {
@@ -38,7 +41,11 @@ body {
   align-items: center;
 }
 
-#select-menu {
+#episode-select-menu {
+  font-size: 1em;
+}
+
+#show-select-menu {
   font-size: 1em;
 }
 
