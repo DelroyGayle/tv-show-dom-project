@@ -401,7 +401,7 @@ function jumpToEpisode(event) {
        searchText = "";
        searchBar.value = "";
        removeChildren(mainDisplayDiv); // remove previous display
-       showAll(false) // show all episodes
+       showAll(false); // show all episodes
     }
 
 /*
@@ -416,13 +416,13 @@ function jumpToEpisode(event) {
     if (episode.style.border != "") // bug fix for Level 400: necessary to display border properly ???
     {
              episode.style.border="";
-             delay+=3000// extend the delay
+             delay+=3000; // extend the delay
     }
 
     // set focus on the selected episode
     episode.setAttribute('tabindex', '-1'); 
     episode.focus();
-    episode.removeAttribute('tabindex')
+    episode.removeAttribute('tabindex');
 
     // reset the dropdown menu
     episodeSelectMenu.selectedIndex = 0;
@@ -444,5 +444,5 @@ function selectShow(event) {
        saveAllEpisodes = [...allEpisodes];
        saveShowNumber = showNumber;
        showNumber = +event.target.value; // this is the selected show's details position in the allShows array
-       fetchShowAndEpisodes() // Load the episodes
+       fetchShowAndEpisodes(); // Load the episodes
 }
