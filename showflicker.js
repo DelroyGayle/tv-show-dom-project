@@ -1,7 +1,4 @@
-//You can edit ALL of the code here
-
-
-// Level 350
+// Test program to 'flick' through all available shows to ensure that the API is working properly
 
 // Global Variables/Settings
   const mainDisplayDiv = document.querySelector(".gridDisplay");
@@ -9,95 +6,118 @@
   const searchBar = document.getElementById("movie-query"); // The Search Bar
   const displayMessage = document.getElementsByClassName("display-message");
   const selectMenu = document.getElementById("select-menu");
+  const showName = document.getElementsByClassName("showname");
+  
+  
 
-  const DEFAULT_SHOWID = 82 // i.e. Game of Thrones 
+
+// Event Listeners
+//  searchBar.addEventListener("keyup", searchFunction);
+//  selectMenu.addEventListener("change",jumpToEpisode);
 
   const FETCHOK = 200;
   const BADURL = 404;
   const SERVER_ERROR = 500;
 
-// Event Listeners
-  searchBar.addEventListener("keyup", searchFunction);
-  selectMenu.addEventListener("change",jumpToEpisode);
+  let allShows;
+  let allShowsTotal;
+  let count = 0;
+
 
   let tvmInfoDiv;
   let allEpisodes;
   let allEpisodesTotal;
   let searchText = ""; // this variable needs to be global
 
+
+
   // Commence Setup
   window.onload = setup;
 
 function setup() {
-  getAllEpisodes();
+ /* Tested first with just one show   
+  allShows = [getOneShow()];
+
+  Now test with all available shows
+ */
+
+  allShows = getAllShows();
+  allShowsTotal = allShows.length;
+
+  // see https://stackoverflow.com/questions/6685396/execute-the-setinterval-function-without-delay-the-first-time for details of this function
+  setIntervalImmediately(fetchDisplayEveryShow, 20000); 
+} 
+
+function setIntervalImmediately(func, interval) {
+  func();
+  return setInterval(func, interval);
 }
 
-function getAllEpisodes() {
-  fetchShowAndEpisodes(DEFAULT_SHOWID);
+function fetchDisplayEveryShow() {
+    if (++count > allShowsTotal) {
+        // Repeat the Cycle from the Beginning
+        count = 1
+    }    
+    fetchShowAndEpisodes();
+    return;
 }
 
-function fetchShowAndEpisodes(showID) {
-      let currentShowID = showID;
-      let fetchRequest = `https://api.tvmaze.com/shows/${currentShowID}/episodes`;
-      fetchErrorOccurred = false;
+function fetchShowAndEpisodes() {
+      let currentShowID = allShows[count-1].id; // Fetch Show ID from the array
+      let fetchRequest = `https://api.tvmaze.com/shows/${currentShowID}/episodes`
 
       fetch(fetchRequest)
         .then(response => {
                 let status = response.status;
-
                 if (status === 200) // successful FETCH
                 {
-                    return response.json(); // CHAIN THE JSON DATA
+                    return response.json() // CHAIN THE JSON DATA
                 }
 
                 else if (status === 500) {
-                    alert("An Internal Server Error has occurred.\nPlease investigate your Server Application.");
-                    fetchErrorOccurred = true;
-                    throw new Error(`An Error Has Occurred. Error Code = ${status}`); // Terminate the program
+                    alert("An Internal Server Error has occurred.\nPlease investigate your Server Application.")
                 }
 
                 else if (status === 404) {
-                    alert(`It appears that An Incorrect Link Has Been Used.\nPlease Check This Link :"${currentShowID}"`);
-                    errorMessages += `<p>404 Error Occurred wuth ${currentShowID}</p>`;
-                    fetchErrorOccurred = true;
-                    throw new Error(`Could not load the show.`); // Terminate the program 
+                    alert(`It appears that An Incorrect Link Has Been Used.\nPlease Check This Link :"${currentShowID}"`)
                 }
 
                 else {
-                    let message = `An Error Has Occurred whilst loading "${currentShowID}". Error Code = ${status}`; 
-                    alert(message);
-                    errorMessages += `<p>${message}</p>`;
-                    fetchErrorOccurred = true;
-                    throw new Error(`Could not load the show.`); // Terminate the program 
-                };               
+                    alert(`An Error Has Occurred. Error Code = ${status}`)
+                };
+                throw new Error(`An Error Has Occurred. Error Code = ${status}`) // Terminate the program
+                
             })
-
         .then(data => {
                            // Retrieve all the episodes
                            allEpisodes = data;
                            allEpisodesTotal = allEpisodes.length;
-                           firstFetch = false;
                            episodes_setup();
                       })
 
         .catch(error => {
-                           let message = `There is an issue regarding: ${fetchRequest}`;
-                           alert(message + `\nThe data structure of this show does not match the expected Data Structure of an Episode.`);
-                           fetchErrorOccurred = true;
-                           handleFetchError();
-                        });
+                           alert('There has been a problem with your fetch operation:'+fetchRequest);
+                           throw new Error('Issue with Fetch') // Terminate the program
+                     });
 }
 
-function handleFetchError() {
-               throw new Error(`Could not load the show.`); // Terminate the program                           
-}
+function episodes_setup() {     
 
-function episodes_setup() {
-  // set up the table and dropdown menu for ALL episodes
+  // remove previous display
+    removeChildren(mainDisplayDiv); 
+    removeChildren(selectMenu)
+    removeChildren(tvmInfoDiv);
+    removeChildren(tvMazeInfo);
+
+// set up the table and dropdown menu for ALL episodes
   let option = document.createElement('option');
   option.value = "";
   option.text = "Select an episode ..."; // Placeholder
   selectMenu.appendChild(option);
+
+  displayMessage[0].innerText = `Displaying ${allEpisodesTotal} episodes.`;
+  showName[0].innerText = allShows[count-1].name; 
+
   showAll(true); // display all episodes
 
        
@@ -120,6 +140,11 @@ function episodes_setup() {
   tvMazeInfo.appendChild(tvmInfoDiv);
 }
 
+function makePageForEpisodes(episodeList) {
+  const rootElem = document.getElementById("root");
+  rootElem.textContent = `Got ${episodeList.length} episode(s)`;
+}
+
 function showAll(setup_options) {
        for (let i = 0; i < allEpisodes.length; i++)
        {
@@ -132,7 +157,7 @@ function showAll(setup_options) {
                           selectMenu.appendChild(option);
                                 }           
        }
-       displayMessage[0].innerText = `Displaying ${allEpisodesTotal}/${allEpisodesTotal} episodes.`;
+       displayMessage[0].innerText = `Displaying ${allEpisodesTotal} episodes.`;
 }
 
 function createAllEpisodes(index) {
@@ -219,6 +244,9 @@ function searchFunction(useThisValue) {
 
 // remove HTML nodes
 function removeChildren(node) {
+     if (!node)
+            return; // currently undefined
+
      while( node.firstChild )
               node.removeChild( node.firstChild );
 }
@@ -297,17 +325,7 @@ function processText(text,lowerCase,extraText,result) {
                               }
 }
 
-/*
-   Originally for the 'border' effect :-
-   I was using episode.classList.toggle('blue-border'); a constant delay of 3000 and setInterval
-   However some inconsistencies appeared whilst testing Level 400 when the 'same' episode is selected more than once in a row!
-   So I now use episode.classList.add('blue-border'); a variable 'delay' with an initial value of 3000
-   and setTimeout
-*/
-
 function jumpToEpisode(event) {
-
-  let delay = 3000;
 
   // If search results are currently being displayed
   // reset display first by showing ALL episodes
@@ -321,29 +339,12 @@ function jumpToEpisode(event) {
     }
 
     let episode = document.getElementById(event.target.value);
-    if (episode.style.border != "") // bug fix: necessary to display border properly ???
-    {
-             episode.style.border="";
-             delay += 3000; // extend the delay
-    }
-
     // set focus on the selected episode
     episode.setAttribute('tabindex', '-1'); 
     episode.focus();
-    episode.removeAttribute('tabindex');
-
-    // Scroll to the selected episode
-    episode.scrollIntoView(); 
-
+    episode.removeAttribute('tabindex')
     // reset the dropdown menu
     selectMenu.selectedIndex = 0;
-
-    // Border Functionality
-    // episode.classList.toggle('blue-border');
-    episode.classList.add('blue-border');
-    setTimeout(function(episode) {episode.style.border = "none";},3000, episode);
-    if (delay > 3000) { // bug fix: need to REPEAT identical Timeout to display border properly
-                    episode.classList.add('blue-border');
-                    setTimeout(function(episode) {episode.style.border = "none";},delay, episode);
-                    } 
+    episode.classList.toggle('blue-border');
+    setInterval(function(episode) {episode.style.border = "none";},3000, episode);
 }

@@ -1,8 +1,13 @@
 :root {
+  --cool-gray-9C: #657786;
   --twitter-blue: #1da1f2;
   --white: #ffffff;
   --red: #ff0000;
   --yellow: #ffff00;
+}
+
+#root {
+  color: var(--red);
 }
 
 .mainHeading {
@@ -11,6 +16,13 @@
   color: var(--twitter-blue);
   font-style: italic;
   text-decoration: underline;
+}
+
+/* Added a field to display the name of the show */
+.showname {
+  font-size: 2em;
+  text-align: center;
+  font-weight: 400;
 }
 
 body {
