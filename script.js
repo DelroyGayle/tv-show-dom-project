@@ -112,7 +112,7 @@ function handleFetchError() {
          if (firstFetch) { // This happened at the very beginning of the program
                            // i.e. the first ever Fetch, so abort
                            alert("Catastrophic error has occurred - investigate 'shows.js' - it appears to be corrupted");
-                           throw new Error(`Could not load shows.`); // Terminate the projsgram
+                           throw new Error(`Could not load shows.`); // Terminate the program
                          };
 
          // Otherwise Restore Previous Show & Redisplay the Episodes
