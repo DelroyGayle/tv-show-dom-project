@@ -203,11 +203,6 @@ function populateShowMenu() {
                                          };  
 }
 
-function makePageForEpisodes(episodeList) {
-  const rootElem = document.getElementById("root");
-  rootElem.textContent = `Got ${episodeList.length} episode(s)`;
-}
-
 function showAll(setup_options) {
        for (let i = 0; i < allEpisodes.length; i++)
        {
@@ -423,6 +418,10 @@ function jumpToEpisode(event) {
     episode.setAttribute('tabindex', '-1'); 
     episode.focus();
     episode.removeAttribute('tabindex');
+
+    // Scroll to the selected episode
+    episode.scrollIntoView();
+
 
     // reset the dropdown menu
     episodeSelectMenu.selectedIndex = 0;
