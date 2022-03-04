@@ -1,7 +1,7 @@
 //You can edit ALL of the code here
 
 
-// Level300
+// Level 300
 
 // Global Variables/Settings
   const mainDisplayDiv = document.querySelector(".gridDisplay");
@@ -231,7 +231,7 @@ function processText(text,lowerCase,extraText,result) {
 }
 
 /*
-   Originally for the 'border effect :-
+   Originally for the 'border' effect :-
    I was using episode.classList.toggle('blue-border'); a constant delay of 3000 and setInterval
    However some inconsistencies appeared whilst testing Level 400 when the 'same' episode is selected more than once in a row!
    So I now use episode.classList.add('blue-border'); a variable 'delay' with an initial value of 3000
@@ -263,15 +263,18 @@ function jumpToEpisode(event) {
     episode.setAttribute('tabindex', '-1'); 
     episode.focus();
     episode.removeAttribute('tabindex');
+
     // Scroll to the selected episode
     episode.scrollIntoView();   
+
     // reset the dropdown menu
     selectMenu.selectedIndex = 0;
-    // episode.classList.toggle('blue-border');
+
     // Border Functionality
+    // episode.classList.toggle('blue-border');
     episode.classList.add('blue-border');
     setTimeout(function(episode) {episode.style.border = "none";},3000, episode);
-    if (delay>3000) { // bug fix: need to REPEAT identical Timeout to display border properly
+    if (delay > 3000) { // bug fix: need to REPEAT identical Timeout to display border properly
                     episode.classList.add('blue-border');
                     setTimeout(function(episode) {episode.style.border = "none";},delay, episode);
                     }   
