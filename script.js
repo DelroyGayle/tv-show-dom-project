@@ -1,7 +1,7 @@
 //You can edit ALL of the code here
 
 
-// testing Level300
+// Level 350
 
 // Global Variables/Settings
   const mainDisplayDiv = document.querySelector(".gridDisplay");
@@ -9,6 +9,12 @@
   const searchBar = document.getElementById("movie-query"); // The Search Bar
   const displayMessage = document.getElementsByClassName("display-message");
   const selectMenu = document.getElementById("select-menu");
+
+  const DEFAULT_SHOWID = 82 // i.e. Game of Thrones 
+
+  const FETCHOK = 200;
+  const BADURL = 404;
+  const SERVER_ERROR = 500;
 
 // Event Listeners
   searchBar.addEventListener("keyup", searchFunction);
@@ -23,10 +29,71 @@
   window.onload = setup;
 
 function setup() {
-  allEpisodes = getAllEpisodes();
-  allEpisodesTotal = allEpisodes.length;
+  getAllEpisodes();
+}
 
-// set up the table and dropdown menu for ALL episodes
+function getAllEpisodes() {
+  fetchShowAndEpisodes(DEFAULT_SHOWID);
+}
+
+function fetchShowAndEpisodes(showID) {
+      let currentShowID = showID;
+      let fetchRequest = `https://api.tvmaze.com/shows/${currentShowID}/episodes`;
+      fetchErrorOccurred = false;
+
+      fetch(fetchRequest)
+        .then(response => {
+                let status = response.status;
+
+                if (status === 200) // successful FETCH
+                {
+                    return response.json(); // CHAIN THE JSON DATA
+                }
+
+                else if (status === 500) {
+                    alert("An Internal Server Error has occurred.\nPlease investigate your Server Application.");
+                    fetchErrorOccurred = true;
+                    throw new Error(`An Error Has Occurred. Error Code = ${status}`); // Terminate the program
+                }
+
+                else if (status === 404) {
+                    alert(`It appears that An Incorrect Link Has Been Used.\nPlease Check This Link :"${currentShowID}"`);
+                    errorMessages += `<p>404 Error Occurred wuth ${currentShowID}</p>`;
+                    fetchErrorOccurred = true;
+                    throw new Error(`Could not load the show.`); // Terminate the program 
+                }
+
+                else {
+                    let message = `An Error Has Occurred whilst loading "${currentShowID}". Error Code = ${status}`; 
+                    alert(message);
+                    errorMessages += `<p>${message}</p>`;
+                    fetchErrorOccurred = true;
+                    throw new Error(`Could not load the show.`); // Terminate the program 
+                };               
+            })
+
+        .then(data => {
+                           // Retrieve all the episodes
+                           allEpisodes = data;
+                           allEpisodesTotal = allEpisodes.length;
+                           firstFetch = false;
+                           episodes_setup();
+                      })
+
+        .catch(error => {
+                           let message = `There is an issue regarding: ${fetchRequest}`;
+                           alert(message + `\nThe data structure of this show does not match the expected Data Structure of an Episode.`);
+                           fetchErrorOccurred = true;
+                           handleFetchError();
+                        });
+}
+
+function handleFetchError() {
+               throw new Error(`Could not load the show.`); // Terminate the program                           
+}
+
+function episodes_setup() {
+  // set up the table and dropdown menu for ALL episodes
   let option = document.createElement('option');
   option.value = "";
   option.text = "Select an episode ..."; // Placeholder
@@ -51,11 +118,6 @@ function setup() {
   
   tvmInfoDiv.appendChild(theLink);
   tvMazeInfo.appendChild(tvmInfoDiv);
-}
-
-function makePageForEpisodes(episodeList) {
-  const rootElem = document.getElementById("root");
-  rootElem.textContent = `Got ${episodeList.length} episode(s)`;
 }
 
 function showAll(setup_options) {
