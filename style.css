@@ -1,13 +1,8 @@
 :root {
-  --cool-gray-9C: #657786;
   --twitter-blue: #1da1f2;
   --white: #ffffff;
   --red: #ff0000;
   --yellow: #ffff00;
-}
-
-#root {
-  color: var(--red);
 }
 
 .mainHeading {

@@ -1,5 +1,8 @@
 //You can edit ALL of the code here
 
+
+// Level 300
+
 // Global Variables/Settings
   const mainDisplayDiv = document.querySelector(".gridDisplay");
   const tvMazeInfo = document.querySelector(".tvmaze-info"); // tvMaze info
@@ -48,11 +51,6 @@ function setup() {
   
   tvmInfoDiv.appendChild(theLink);
   tvMazeInfo.appendChild(tvmInfoDiv);
-}
-
-function makePageForEpisodes(episodeList) {
-  const rootElem = document.getElementById("root");
-  rootElem.textContent = `Got ${episodeList.length} episode(s)`;
 }
 
 function showAll(setup_options) {
@@ -232,8 +230,17 @@ function processText(text,lowerCase,extraText,result) {
                               }
 }
 
+/*
+   Originally for the 'border' effect :-
+   I was using episode.classList.toggle('blue-border'); a constant delay of 3000 and setInterval
+   However some inconsistencies appeared whilst testing Level 400 when the 'same' episode is selected more than once in a row!
+   So I now use episode.classList.add('blue-border'); a variable 'delay' with an initial value of 3000
+   and setTimeout
+*/
+
 function jumpToEpisode(event) {
 
+    let delay = 3000;
   // If search results are currently being displayed
   // reset display first by showing ALL episodes
     if (searchText !== "")
@@ -242,16 +249,33 @@ function jumpToEpisode(event) {
        searchText = "";
        searchBar.value = "";
        removeChildren(mainDisplayDiv); // remove previous display
-       showAll(false) // show all episodes
+       showAll(false); // show all episodes
     }
 
     let episode = document.getElementById(event.target.value);
+    if (episode.style.border != "") // bug fix: necessary to display border properly ???
+    {
+             episode.style.border="";
+             delay += 3000; // extend the delay
+    }
+
     // set focus on the selected episode
     episode.setAttribute('tabindex', '-1'); 
     episode.focus();
-    episode.removeAttribute('tabindex')
+    episode.removeAttribute('tabindex');
+
+    // Scroll to the selected episode
+    episode.scrollIntoView();   
+
     // reset the dropdown menu
     selectMenu.selectedIndex = 0;
-    episode.classList.toggle('blue-border');
-    setInterval(function(episode) {episode.style.border = "none";},3000, episode);
+
+    // Border Functionality
+    // episode.classList.toggle('blue-border');
+    episode.classList.add('blue-border');
+    setTimeout(function(episode) {episode.style.border = "none";},3000, episode);
+    if (delay > 3000) { // bug fix: need to REPEAT identical Timeout to display border properly
+                    episode.classList.add('blue-border');
+                    setTimeout(function(episode) {episode.style.border = "none";},delay, episode);
+                    }   
 }
