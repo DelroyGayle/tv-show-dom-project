@@ -1,7 +1,7 @@
 //You can edit ALL of the code here
 
 
-// Level 400 Changes - Add a Show Selector
+// Level 500 Changes - Add a Show List and Search
 
 // Global Variables/Settings
   const mainDisplayDiv = document.querySelector(".gridDisplay");
@@ -13,6 +13,12 @@
   const errorMessagesElement = document.getElementsByClassName("error-messages");
   const showName = document.getElementsByClassName("showname");
   const DEFAULT_SHOWID = 82 // i.e. Game of Thrones 
+  const showSelectorDisplay = document.getElementsByClassName("showselector");
+  const showsList = document.getElementsByClassName("shows-list");
+  console.log(showsList)
+
+  document.getElementById("M1").addEventListener("click", doALERT);
+   document.getElementById("IM1").addEventListener("click", doALERT);
 
 
   const FETCHOK = 200;
@@ -46,11 +52,18 @@ function setup() {
   // Retrieve all available shows   
   allShows = getAllShows();
   allShowsTotal = allShows.length;
+
+  // Set Up the shows list
+  shows_list_setup();
+  return 
+
   showNumber = 0;
   showNumber = allShows.findIndex(element => element.id === DEFAULT_SHOWID);
   errorMessages = "";
 
   fetchShowAndEpisodes();
+
+ 
 }
 
 
@@ -222,7 +235,7 @@ function createAllEpisodes(index) {
     const episodeDiv = document.createElement('div'); // main 'div' to append to
     const source = allEpisodes[index]; // Entire Episode Entry
 
-    episodeDiv.setAttribute("id",fetchEpisodeSeason_Suffix(source)); // EG S01E01
+    episodeDiv.setAttribute("id",fetchEpisodeSeason_Suffix(source)); // I.E. the 'id' will be called S01E01
 
     let episodeInfo = fetchEpisodeSeason_Full(source); // EG Winter is Coming - S01E01
     const text = document.createElement('h1');
@@ -266,7 +279,7 @@ function removeHTML(text) {
   return text.replaceAll(/<\/?(p|br)>/ig,"");
 }
 
-// Instead of using innerHtml, remove the <p></p> and use innerText instead
+// Instead of using innerHTML, remove the <p></p> and use innerText instead
 function handle_paragraph(text) {
       text = removeHTML(text); // remove any <p> </p>
       let paragraph = document.createElement("p");
@@ -444,4 +457,204 @@ function selectShow(event) {
        saveShowNumber = showNumber;
        showNumber = +event.target.value; // this is the selected show's details position in the allShows array
        fetchShowAndEpisodes(); // Load the episodes
+}
+
+function shows_list_setup() {
+  // Hide the Show Selector view
+  showSelectorDisplay[0].style.display = "none";
+  // Sort all the shows into alphabetical (case-insensitive) order
+         allShows.sort(function (show1, show2) {
+                        let showX = show1.name.toLowerCase();
+                        let showY = show2.name.toLowerCase();
+                        return showX == showY ? 0 : showX > showY ? 1 : -1;
+                      });
+  // Populate the Shows List
+     allShows.forEach(element => createShowEntry(element))          
+}
+
+/* Create for example
+      <div class="show-entry">
+        <figure>
+          <img
+            class="show-image"
+            id="IM1"
+            src="http://static.tvmaze.com/uploads/images/medium_portrait/190/476117.jpg"
+          />
+        </figure>
+        <div class="show-info">
+          <h1 class="list-show-name" id="M1">Game of Thrones</h1>
+
+          <div class="show-summary">
+            <p>Here is some text</p>
+            <p>
+              Pellentesque habitant morbi tristique senectus et netus et
+              malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat
+              vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+              amet quam egestas semper. Aenean ultricies mi vitae est. Mauris
+              placerat eleifend leo. Quisque sit amet est et sapien ullamcorper
+              pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae,
+              ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt
+              condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac
+              dui.
+            </p>
+          </div>
+          <div class="summary-flex-container">
+            <p class="item">Official Website: movies.com</p>
+            <p class="item">Premiered: 22nd February 1990</p>
+            <p class="item">Rated: 8.5</p>
+
+            <p class="item">Genres: abc | def | high</p>
+            <p class="item">Status: running</p>
+            <p class="item">Runtime: 60 minutes</p>
+          </div>
+        </div>
+      </div>
+*/
+
+function createShowEntry(element) {
+           let img = document.createElement("img"); // SHOW IMAGE
+          img.setAttribute("class", "show-image");
+          img.setAttribute("id","IM" + element.id); // I.E. the 'id' for this image will be called for example, for Game of Thrones, IM82
+          // Discovered for example - Show: "Cosmos", ID:1127 has no image!!
+          if (!element.image) {
+              img = document.createElement("p");
+              img.innerText = "NO IMAGE AVAILABLE"
+          }
+
+          else
+              img.src = element.image.medium;
+
+          const figure = document.createElement("figure");
+          figure.append(img);  
+
+          let header = document.createElement("h1"); // SHOWNAME
+          header.setAttribute("class", "list-show-name");
+          header.setAttribute("id","M" + element.id); // I.E. the 'id' for the Show Name will be called for example, for Game of Thrones, M82
+          header.innerHTML = element.name;
+
+          let theDiv1 = document.createElement("div");
+          theDiv1.setAttribute("class", "show-info");
+          theDiv1.append(header);
+
+          let paragraph = document.createElement("p"); // SHOW SUMMARY
+          paragraph.innerHTML = element.summary;
+
+          let theDiv2 = document.createElement("div");
+          theDiv2.setAttribute("class", "show-summary");
+          theDiv2.append(paragraph);          
+
+          let addInfoDiv = document.createElement("div"); // ADDITIONAL: Website/Premiered/Rated/Genres/Status/Runtime
+          addInfoDiv.setAttribute("class", "summary-flex-container");
+
+          paragraph = document.createElement("p"); // OFFICIAL WEBSITE
+          let boldText = document.createElement("strong");
+          boldText.innerText = "Official Website: "
+          paragraph.append(boldText)
+
+          if (element.officialSite !== "")
+          {
+              let theLink = create_link(element.officialSite,element.officialSite);
+              paragraph.append(theLink);
+          }
+          addInfoDiv.append(paragraph);  
+
+          paragraph = document.createElement("p"); // PREMIERED
+          paragraph.setAttribute("class", "item");
+          boldText = document.createElement("strong");
+          boldText.innerText = "Premiered: "
+          paragraph.append(boldText)
+
+          let paragraph2 = document.createElement("p");
+          if (element.premiered !== "")
+          {
+              paragraph2.innerText = element.premiered;
+              paragraph.append(paragraph2);
+          }
+          addInfoDiv.append(paragraph);  
+
+          paragraph = document.createElement("p"); // RATED
+          paragraph.setAttribute("class", "item");
+          boldText = document.createElement("strong");
+          boldText.innerText = "Rated: "
+          paragraph.append(boldText)
+
+          paragraph2 = document.createElement("p");
+          if (element.rating.average)
+          {
+              paragraph2.innerText = String(element.rating.average);
+              paragraph.append(paragraph2);
+          }
+          addInfoDiv.append(paragraph);  
+
+          paragraph = document.createElement("p"); // GENRES
+          paragraph.setAttribute("class", "item");
+          boldText = document.createElement("strong");
+          boldText.innerText = "Genres: "
+          paragraph.append(boldText)
+
+          // If GENRES is null, use TYPE instead
+          let genresArray = [];
+          if (element.genres !== undefined && element.genres.length > 0) {
+                 genresArray = [...element.genres];
+                 genresArray.sort(); // SORT THEM ALPHABETICALLY
+          }
+
+          else if (element.type !== "")
+                  genresArray = [element.type];
+
+          paragraph2 = document.createElement("p");
+          paragraph2.innerText = genresArray.join(" | ")
+          paragraph.append(paragraph2);
+          addInfoDiv.append(paragraph); 
+
+          paragraph = document.createElement("p"); // STATUS
+          paragraph.setAttribute("class", "item");
+          boldText = document.createElement("strong");
+          boldText.innerText = "Status: "
+          paragraph.append(boldText)
+
+          paragraph2 = document.createElement("p");
+          if (element.status != "")
+          {
+              paragraph2.innerText = element.status;
+              paragraph.append(paragraph2);
+          }
+          addInfoDiv.append(paragraph);  
+
+          paragraph = document.createElement("p"); // RUNTIME
+          paragraph.setAttribute("class", "item");
+          boldText = document.createElement("strong");
+          boldText.innerText = "Runtime: "
+          paragraph.append(boldText)
+
+          paragraph2 = document.createElement("p");
+          if (element.runtime)
+          {
+              paragraph2.innerText = `${element.runtime} minutes`;
+              paragraph.append(paragraph2);
+          }
+          addInfoDiv.append(paragraph);
+
+          theDiv2.append(addInfoDiv);  
+          theDiv1.append(theDiv2);
+
+          let showEntryDiv = document.createElement("div");
+          showEntryDiv.setAttribute("class", "show-entry");
+          showEntryDiv.append(figure);
+          showEntryDiv.append(header);
+          showEntryDiv.append(theDiv1);
+
+          // Append the new Show Entry
+          showsList[0].append(showEntryDiv);
+}
+
+function create_link(text,url) {
+    let theLink = document.createElement("a");
+    theLink.href = url;        
+    theLink.textContent = text;
+    theLink.setAttribute('target', '_blank'); // Open in another tab
+}
+
+function doALERT() {
+  alert("YES")
 }

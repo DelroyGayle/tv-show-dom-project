@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-  <!-- This file is used in conjunction with showflicker.js to test that the API is working as expected -->
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,33 +12,107 @@
     <div id="root"></div>
 
     <div class="mainHeading">MOVIES GALORE!</div>
-    <!-- Added a field to display the name of the show -->
-    <h2 class="showname"></h2>
-    <!-- Display Info such as the number of episodes 73/73 -->
-    <div>
-      <p class="display-message"></p>
-    </div>
-    <div class="display-info">
-      <!-- Dropdown menus -->
-      <!-- Show Selector-->
-      <select name="show-select-menu" id="show-select-menu"></select>
-      <!-- Episode Selector-->
-      <select name="episode-select-menu" id="episode-select-menu"></select>
-      <!-- Search -->
-      <div class="thesearchbar">
-        <input
-          type="text"
-          id="movie-query"
-          name="q"
-          placeholder="Movies & Episodes Search"
-        />
+    <main class="showselector">
+      <!-- Added a field to display the name of the show -->
+      <h2 class="showname"></h2>
+      <!-- Display Info such as the number of episodes 73/73 -->
+      <div>
+        <p class="display-message"></p>
       </div>
-    </div>
-    <!-- Episodes Display Grid -->
-    <main class="mainpad">
-      <div class="gridDisplay scroll"></div>
+      <div class="display-info">
+        <!-- Dropdown menus -->
+        <!-- Show Selector-->
+        <select name="show-select-menu" id="show-select-menu"></select>
+        <!-- Episode Selector-->
+        <select name="episode-select-menu" id="episode-select-menu"></select>
+        <!-- Search -->
+        <div class="thesearchbar">
+          <input
+            type="text"
+            id="movie-query"
+            name="q"
+            placeholder="Movies & Episodes Search"
+          />
+        </div>
+      </div>
+      <!-- Episodes Display Grid -->
+      <section class="mainpad">
+        <div class="gridDisplay scroll"></div>
+      </section>
     </main>
+    <main class="shows-list">
+      <div class="show-entry">
+        <figure>
+          <img
+            class="show-image"
+            id="IM1"
+            src="http://static.tvmaze.com/uploads/images/medium_portrait/190/476117.jpg"
+          />
+        </figure>
+        <div class="show-info">
+          <h1 class="list-show-name" id="M1">Game of Thrones</h1>
 
+          <div class="show-summary">
+            <p>Here is some text</p>
+            <p>
+              Pellentesque habitant morbi tristique senectus et netus et
+              malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat
+              vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+              amet quam egestas semper. Aenean ultricies mi vitae est. Mauris
+              placerat eleifend leo. Quisque sit amet est et sapien ullamcorper
+              pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae,
+              ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt
+              condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac
+              dui.
+            </p>
+          </div>
+          <div class="summary-flex-container">
+            <p class="item">Official Website: movies.com</p>
+            <p class="item">Premiered: 22nd February 1990</p>
+            <p class="item">Rated: 8.5</p>
+
+            <p class="item">Genres: abc | def | high</p>
+            <p class="item">Status: running</p>
+            <p class="item">Runtime: 60 minutes</p>
+          </div>
+        </div>
+      </div>
+      <div class="show-entry">
+        <figure>
+          <img
+            class="show-image"
+            src="http://static.tvmaze.com/uploads/images/medium_portrait/80/201679.jpg"
+          />
+        </figure>
+        <div class="show-info">
+          <h1 class="list-show-name">Band of Brothers</h1>
+
+          <div>
+            <p>Here is some text</p>
+            <p>
+              Pellentesque habitant morbi tristique senectus et netus et
+              malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat
+              vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+              amet quam egestas semper. Aenean ultricies mi vitae est. Mauris
+              placerat eleifend leo. Quisque sit amet est et sapien ullamcorper
+              pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae,
+              ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt
+              condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac
+              dui.
+            </p>
+          </div>
+          <div class="container">
+            <p>Official Website: movies.com</p>
+            <p>Premiered: 22nd February 1990</p>
+            <p>Rated: 8.5</p>
+            <p>Genres: abc | def | high</p>
+            <p>Status: running</p>
+            <p>Runtime: 60</p>
+            <p>(in minutes)</p>
+          </div>
+        </div>
+      </div>
+    </main>
     <!-- TVMaze.com info -->
     <footer class="footer">
       <div class="tvmaze-info"></div>

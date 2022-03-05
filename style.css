@@ -98,3 +98,61 @@ body {
 .image {
   padding-bottom: 1em;
 }
+
+.shows-list {
+  padding-left: 3em;
+  padding-right: 6em;
+}
+
+.show-entry {
+  display: flex;
+  align-items: stretch;
+  border: 2px solid #900;
+  /* border-top: none; */
+}
+
+.show-image {
+  max-width: 100%;
+  object-fit: contain;
+  /* height: 400px;
+  /* width: 400px; */
+}
+
+.list-show-name {
+  font-family: "Arial Bold";
+  font-size: 2em;
+}
+
+.show-info {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 3;
+}
+
+.show-summary {
+  padding-right: 3em;
+}
+.show-additional-info {
+  display: flex;
+  flex-direction: column;
+  list-style-type: none;
+  gap: 1em;
+}
+
+.summary-flex-container {
+  display: flex;
+  flex-flow: row wrap;
+  align-content: space-between;
+  justify-content: space-between;
+}
+
+// Solution taken from https://stackoverflow.com/questions/29732575/how-to-specify-line-breaks-in-a-multi-line-flexbox-layout  
+ 
+.item:nth-child(3n) {
+  break-after: always; /* New proposed syntax */
+  padding-right: 3em;
+}
+
+.item:nth-child(3) {
+  justify-self: center;
+}
