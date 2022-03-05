@@ -12,14 +12,8 @@
   const showSelectMenu = document.getElementById("show-select-menu"); // Show Selector
   const errorMessagesElement = document.getElementsByClassName("error-messages");
   const showName = document.getElementsByClassName("showname");
-  const DEFAULT_SHOWID = 82 // i.e. Game of Thrones 
   const showSelectorDisplay = document.getElementsByClassName("showselector");
   const showsList = document.getElementsByClassName("shows-list");
-  console.log(showsList)
-
-  document.getElementById("M1").addEventListener("click", doALERT);
-   document.getElementById("IM1").addEventListener("click", doALERT);
-
 
   const FETCHOK = 200;
   const BADURL = 404;
@@ -29,11 +23,12 @@
   let allShowsTotal;
   let showNumber = 0;
   let padSize;
-  let errorMessages;
+  let errorMessages = "";
   let firstFetch = true;
   let fetchErrorOccurred = false;
   let saveAllEpisodes;
   let saveShowNumber;
+  let globalCount=0;
 
 // Event Listeners
   searchBar.addEventListener("keyup", searchFunction);
@@ -55,17 +50,36 @@ function setup() {
 
   // Set Up the shows list
   shows_list_setup();
-  return 
-
-  showNumber = 0;
-  showNumber = allShows.findIndex(element => element.id === DEFAULT_SHOWID);
-  errorMessages = "";
-
-  fetchShowAndEpisodes();
-
- 
+  // alert("MOVIES GALORE! Shows List.\nClick either the Show Image or the Show Name to view the episodes.\n");
 }
 
+function getEpisodesPage(event) {
+    // event.target.id will be either of the form IMnnnn for a clicked Show Image OR the form Mnnnn for a clicked Show Name
+    let theId = event.target.id;
+
+    if (theId.startsWith('M'))
+            theId = +theId.substr(1)
+    else if (theId.startsWith('IM'))
+            theId = +theId.substr(2)
+    else {
+                alert("An Internal Error has occurred. Mnnn/IMnnn expected,\nInstead got " + theId +
+                      "Please investigate - Application terminated");
+                throw new Error(`An Error Has Occurred. ID = ${theId}`); // Terminate the program     
+         };
+
+    showNumber = allShows.findIndex(element => element.id === theId);
+    // Doubtful but just in case if something went wrong
+    if (showNumber < 0) {
+                               alert(`An Internal Error has occurred. Could not find Show with this ID: ${theId}\nApplication terminated`);
+                               throw new Error(`ID Error Has Occurred. ID = ${theId}`); // Terminate the program     
+    };   
+
+    
+    showsList[0].style.display = "none";            // Hide the Shows List view
+    showSelectorDisplay[0].style.display = "block"; // Show the Episodes List view
+    // Handle Episodes Processing
+    fetchShowAndEpisodes() 
+}
 
 function fetchShowAndEpisodes() {
       let currentShowID = allShows[showNumber].id; // Fetch Show ID from the array
@@ -194,19 +208,6 @@ function episodes_setup() {
 }
 
 function populateShowMenu() {
-     // At the beginning of the program
-     // Sort all the shows into alphabetical (case-insensitive) order
-     if (firstFetch) {
-         allShows.sort(function (show1, show2) {
-                        let showX = show1.name.toLowerCase();
-                        let showY = show2.name.toLowerCase();
-                        return showX == showY ? 0 : showX > showY ? 1 : -1;
-                      });
-         showNumber = allShows.findIndex(element => element.id === DEFAULT_SHOWID);
-         // Doubtful but just in case 'Game of Thrones' no longer exists
-         if (showNumber < 0)
-                  showNumber = 0;
-                    };
 
      for (let i=0;i<allShows.length;i++) {
               let option = document.createElement('option');
@@ -441,10 +442,12 @@ function jumpToEpisode(event) {
 
     // Border Functionality
     episode.classList.add('blue-border');
-    setTimeout(function(episode) {episode.style.border = "none";},3000, episode);
+    setTimeout(function(episode) {episode.style.border = "none";},
+                        3000, episode);
     if (delay>3000) { // bug fix for Level 400: need to REPEAT identical Timeout to display border properly
                     episode.classList.add('blue-border');
-                    setTimeout(function(episode) {episode.style.border = "none";},delay, episode);
+                    setTimeout(function(episode) {episode.style.border = "none";},
+                                        delay, episode);
                     }   
 }
 
@@ -461,18 +464,48 @@ function selectShow(event) {
 
 function shows_list_setup() {
   // Hide the Show Selector view
-  showSelectorDisplay[0].style.display = "none";
+     showSelectorDisplay[0].style.display = "none";
+
   // Sort all the shows into alphabetical (case-insensitive) order
-         allShows.sort(function (show1, show2) {
+     allShows.sort(function (show1, show2) {
                         let showX = show1.name.toLowerCase();
                         let showY = show2.name.toLowerCase();
-                        return showX == showY ? 0 : showX > showY ? 1 : -1;
+                        return showX.localeCompare(showY);
                       });
+
+     let errorArray = []; // Record & remove any erroneous entries
   // Populate the Shows List
-     allShows.forEach(element => createShowEntry(element))          
+     allShows.forEach((element,index) => {
+                             globalCount++;
+                             let ok = createShowEntry(element);
+                             if (!ok) {
+                                         // Erroneous entry - record index
+                                         errorArray.push(index);
+                                      }
+                                          });
+
+     if (errorArray.length > 0)
+     {  
+        // remove any erroneous entries from allShows
+        while (errorArray.length > 0)
+        {
+            let entry = errorArray.pop(); // highest entries at the back of the array - so start from the back
+            allShows.splice(entry, 1); // remove entry 
+        };
+
+        allShowsTotal = allShows.length;
+        if (allShowsTotal === 0) // very doubtful
+        {
+                    alert("Catastrophic error has occurred - no shows were loaded. The shows source appears empty!");
+                    throw new Error(`Could not load shows.`); // Terminate the program
+        };
+    }
 }
 
-/* Create for example
+// CREATE A SHOW ENTRY
+
+/* Create for example:
+
       <div class="show-entry">
         <figure>
           <img
@@ -482,7 +515,7 @@ function shows_list_setup() {
           />
         </figure>
         <div class="show-info">
-          <h1 class="list-show-name" id="M1">Game of Thrones</h1>
+          <h2 class="list-show-name" id="M1">Game of Thrones</h2>
 
           <div class="show-summary">
             <p>Here is some text</p>
@@ -501,36 +534,39 @@ function shows_list_setup() {
           <div class="summary-flex-container">
             <p class="item">Official Website: movies.com</p>
             <p class="item">Premiered: 22nd February 1990</p>
-            <p class="item">Rated: 8.5</p>
-
+            <p class="item">Rated: 8.5&nbsp;&nbsp;</p>
+            <hr>
             <p class="item">Genres: abc | def | high</p>
             <p class="item">Status: running</p>
-            <p class="item">Runtime: 60 minutes</p>
+            <p class="item">Runtime: 60 minutes&nbsp;&nbsp;</p>
           </div>
         </div>
       </div>
 */
 
 function createShowEntry(element) {
-           let img = document.createElement("img"); // SHOW IMAGE
+          
+          let img = document.createElement("img"); // SHOW IMAGE
           img.setAttribute("class", "show-image");
           img.setAttribute("id","IM" + element.id); // I.E. the 'id' for this image will be called for example, for Game of Thrones, IM82
           // Discovered for example - Show: "Cosmos", ID:1127 has no image!!
           if (!element.image) {
-              img = document.createElement("p");
-              img.innerText = "NO IMAGE AVAILABLE"
+                    let message = `The Show: ${element.name} - ID: ${element.id} has no image. Load Aborted!"`; 
+                    errorMessages += `<p>${message}</p>`;
+                    return false; // Indicate that this entry was not successful
           }
 
-          else
-              img.src = element.image.medium;
+          img.src = element.image.medium;
+          img.addEventListener("click", getEpisodesPage); // Add a CLICK Listener
 
           const figure = document.createElement("figure");
           figure.append(img);  
 
-          let header = document.createElement("h1"); // SHOWNAME
+          let header = document.createElement("h2"); // SHOWNAME
           header.setAttribute("class", "list-show-name");
           header.setAttribute("id","M" + element.id); // I.E. the 'id' for the Show Name will be called for example, for Game of Thrones, M82
           header.innerHTML = element.name;
+          header.addEventListener("click", getEpisodesPage); // Add a CLICK Listener
 
           let theDiv1 = document.createElement("div");
           theDiv1.setAttribute("class", "show-info");
@@ -551,7 +587,7 @@ function createShowEntry(element) {
           boldText.innerText = "Official Website: "
           paragraph.append(boldText)
 
-          if (element.officialSite !== "")
+          if (element.officialSite)
           {
               let theLink = create_link(element.officialSite,element.officialSite);
               paragraph.append(theLink);
@@ -565,9 +601,10 @@ function createShowEntry(element) {
           paragraph.append(boldText)
 
           let paragraph2 = document.createElement("p");
-          if (element.premiered !== "")
+          if (element.premiered)
           {
-              paragraph2.innerText = element.premiered;
+              let theDate = convertFromYYYYMMDD(element.premiered)
+              paragraph2.innerText = theDate;
               paragraph.append(paragraph2);
           }
           addInfoDiv.append(paragraph);  
@@ -586,6 +623,11 @@ function createShowEntry(element) {
           }
           addInfoDiv.append(paragraph);  
 
+          // FORCE A LINE BREAK USING <hr> - SEE https://stackoverflow.com/questions/29732575/how-to-specify-line-breaks-in-a-multi-line-flexbox-layout 
+
+          let hr = document.createElement("hr");
+          addInfoDiv.append(hr);
+
           paragraph = document.createElement("p"); // GENRES
           paragraph.setAttribute("class", "item");
           boldText = document.createElement("strong");
@@ -594,7 +636,7 @@ function createShowEntry(element) {
 
           // If GENRES is null, use TYPE instead
           let genresArray = [];
-          if (element.genres !== undefined && element.genres.length > 0) {
+          if (Array.isArray(element.genres) && element.genres.length > 0) {
                  genresArray = [...element.genres];
                  genresArray.sort(); // SORT THEM ALPHABETICALLY
           }
@@ -614,7 +656,7 @@ function createShowEntry(element) {
           paragraph.append(boldText)
 
           paragraph2 = document.createElement("p");
-          if (element.status != "")
+          if (element.status)
           {
               paragraph2.innerText = element.status;
               paragraph.append(paragraph2);
@@ -643,9 +685,12 @@ function createShowEntry(element) {
           showEntryDiv.append(figure);
           showEntryDiv.append(header);
           showEntryDiv.append(theDiv1);
+          if (globalCount > 1) // All but the top one, remove the top border
+                  showEntryDiv.style.borderTop = "none";
 
           // Append the new Show Entry
           showsList[0].append(showEntryDiv);
+          return true; // Indicate Success
 }
 
 function create_link(text,url) {
@@ -653,8 +698,15 @@ function create_link(text,url) {
     theLink.href = url;        
     theLink.textContent = text;
     theLink.setAttribute('target', '_blank'); // Open in another tab
+    return theLink;
 }
 
-function doALERT() {
-  alert("YES")
+function convertFromYYYYMMDD(inputDate) {
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+                      "July", "August", "September", "October", "November", "December"];
+
+    //        0123456789
+    // Fornat YYYY-MM-DD
+    let newDate = new Date(+inputDate.substr(0,4), +inputDate.substr(5,2) - 1, +inputDate.substr(8,2))  
+    return `${String(newDate.getDate())} ${monthNames[newDate.getMonth()]} ${String(newDate.getFullYear())}`
 }
