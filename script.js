@@ -41,7 +41,7 @@
   episodeSelectMenu.addEventListener("change",jumpToEpisode);
   showSelectMenu.addEventListener("change",selectShow);
   homeButton.addEventListener("click",displayShowsList);
-  //showsSearchBar.addEventListener("keyup", showsSearchFunction);
+  showsSearchBar.addEventListener("keyup", showsSearchFunction);
 
   let tvmInfoDiv;
   let allEpisodes;
@@ -62,11 +62,10 @@ function setup() {
   // Set Up the shows list
   shows_list_setup();
   footer_setup();
-  // alert("MOVIES GALORE! Shows List.\nClick either the Show Image or the Show Name to view the episodes.\n");
+  showsSearchBar.focus(); // Set focus here
 }
 
 function getEpisodesPage(event) {
-    showsListFlag = true; // About to display the showsList // xxx
     // event.target.id will be either of the form IMnnnn for a clicked Show Image OR of the form Mnnnn for a clicked Show Name
     let theId = event.target.id;
     episodesSearchBar.value = "" // Ensure episodes SearchBox is cleared
@@ -93,7 +92,6 @@ function getEpisodesPage(event) {
 
     // Handle Episodes Processing
     fetchShowAndEpisodes();
-    showsSearchBar.focus(); // Set focus here //++
 }
 
 function fetchShowAndEpisodes() {
@@ -177,7 +175,7 @@ function padding_setup() {
 
 function episodes_setup() {     
     showsList[0].style.display = "none"; // Hide the Shows List view
-    showsListFlag = false; // About to display the showsList // xxx
+    showsListFlag = false; // Indicate that no longer showing the Shows List
     episodesDisplay[0].style.display = "block"; // Display the Episodes List view
 
   // remove previous display
@@ -234,7 +232,7 @@ function displayShowsList() {
       // Hide the Episodes List view
      episodesDisplay[0].style.display = "none";
      showsList[0].style.display = "block";  // Display the Shows List view
-     showsListFlag = true; // Indicate this // xxx
+     showsListFlag = true;                  // Indicate this
 
 }
 
@@ -368,7 +366,7 @@ function episodesSearchFunction(useThisValue) {
    {
          showAll(false);
          return;
-   }
+   };
   
    let lowerCase = episodesSearchText.toLowerCase();
 
@@ -385,6 +383,213 @@ function episodesSearchFunction(useThisValue) {
   // Display the number of episodes found       
   displayMessage[0].innerText = `Displaying ${searchResults.length}/${allEpisodesTotal} episodes.`;
 }
+
+// Perform a 'live' search regarding the Shows List
+function showsSearchFunction(useThisValue) {
+ 
+   showsSearchText = showsSearchBar.value.trim(); // this is the keyed-in value as the user types
+
+   // showAllShows() // Do this to begin with //++
+   //removeChildren(mainDisplayDiv); // remove previous display
+   
+   if (!showsSearchText) // empty input - all shows shown
+   {
+         return;
+   };
+  
+   let lowerCase = showsSearchText.toLowerCase();
+
+   // filter out matching shows
+   performFilter(lowerCase);
+return
+   // filter out matching shows
+   const searchResults = allshows.filter(element => element.name.toLowerCase().includes(lowerCase) ||
+                                                       element.summary.toLowerCase().includes(lowerCase));
+   
+   if (!searchResults.length) // No match so ignore
+            return;
+
+  for (let i = 0; i < searchResults.length; i++)
+         displaySearchResults(i,searchResults[i],lowerCase);
+
+  // Display the number of shows found       
+  displayMessage[0].innerText = `Displaying ${searchResults.length}/${allshowsTotal} episodes.`;
+}
+
+function hideShow(index) {
+    let theEntry = document.getElementById("N" + index); // Each entry as an ID of the form Nnnn
+    theEntry.style.display = "none";
+}
+
+/*
+    The Algorithm Used:
+    Begin with the full display of ALL the Shows
+    Then for each entry
+    Check whether there is a match?
+    If there is no match - hide the display of that Show
+    If there is a match then amend the HTML to show the search term as coloured text and display the entry
+    Keep a record of every entry that as had its text coloured in order to restore back to no colour
+    In the end, all that should be displayed are the Show Entries that smatch 'searchText'
+*/
+function performFilter(searchText) {
+    let changes = [];
+    let nameChanges = [];
+    let showChanges = [];
+  
+
+   
+    allShows.forEach( (element, index, theArray) => {
+            if (! (element.name.toLowerCase().includes(searchText) || element.summary.toLowerCase().includes(searchText) ||
+                                                                      element.genres.toLowerCase().includes(searchText)) ) {
+                          hideShow(index);     
+                          return;                                        
+                                                                     }
+
+            let theId = "N" + index;
+            let theEntry = document.getElementById("N" + index); // Each entry as an ID of the form Nnnn                                                                     
+            processHTML(theId,theEntry,searchText,element,changes,index)
+    }
+      
+          
+    );
+
+}
+
+  function processHTML(theId,theEntry,searchText,element,changes,index) {
+/*
+    Remove any possibility of the searchText being part of a HTML tag
+    e.g. if the user types 'p' it ought NOT to match <p></p>
+
+    Javascript does not support regex lookbehind assertions so what follows is
+    a convoluted workaround using regex - you have been warned :)
+
+    REGEX: <[^>]*(SEARCHTEXT).*?>
+*/
+
+let usingName = true, usingSummary = false, usingGenre = false;
+let localChanges = [];
+const SUMMARY = 0, NAME = 1, GENRES = 2;
+let tagCount,textCount,newHTML,theText;
+
+  // NESTED FUNCTION for Scoping reasons
+
+      function replaceTags(match) {
+
+ // EG 'p' Matches <img class="show-image" id="IM167" src="http://static.tvmaze.com/uploads/images/medium_portrait/0/2330.jpg">
+ // as well as <p class="item"> <p> </p> ETC 
+
+           ++tagCount; // Indicate that a change is to be made
+          // replace with <@number> which is an illegal HTML entry
+
+          // Record the match in order to restore later
+          localChanges[tagCount] = match;
+         
+          return `<@${tagCount}>`;          
+      }
+
+      function putChangesBack() {
+      // <@number> - number being 1 to tagCount, note: zero is EMPTY
+      for (let i=tagCount; i>0; --i) {
+                 newHTML = newHTML.replace(`<@${i}>`, localChanges[tagCount])
+            }
+      }
+
+      // console.log(element.summary);
+      // console.log(element.name);
+      // console.log(element.genres);throw 12 /++
+
+      let regex = new RegExp("<[^>]*" + searchText + ".*?>","gi"); //  REGEX: <[^>]*(SEARCHTEXT).*?>
+   
+      theIndex = String(index);
+
+      tagCount = 0;
+      theText = element.summary;
+      if (theText.toLowerCase().includes(searchText))
+      {
+                newHTML = theText.replace(regex,replaceTags);
+                if (newHTML.includes(searchText)) // Definitely exists in the text - amend the HTML
+                {
+                    // Keep a record of the original text to restore later
+                    if (!(theIndex in changes)) 
+                              changes[theIndex] = {}; 
+                    }
+                    changes[theIndex].summary = theText;
+                    newHTML = newHTML.replaceAll(searchText,"<span class='blueText'>" + searchText + "</span>");
+
+                    if (tagCount) 
+                          putChangesBack();
+
+                    let findElement = document.querySelector("#" + theId + " .show-summary"); // SPACE:  descendant combinator EG #N0 .show-summary
+                    findElement = findElement.firstChild.firstChild;
+                    console.log(changes)
+                    console.log(findElement)
+                    findElement.innerHTML = newHTML;                   
+      }
+
+ 
+      theText = element.name;
+      if (theText.toLowerCase().includes(searchText)) // Definitely exists in the text - amend the HTML
+      {
+                // Keep a record of the original text to restore later
+                if (!(theIndex in changes)) 
+                              changes[theIndex] = {}; 
+                
+                changes[theIndex].name = theText;
+                newHTML = theText.replaceAll(searchText,"<span class='blueText'>" + searchText + "</span>");
+
+                let findElement = document.querySelector("#" + theId + " .list-show-name"); // SPACE:  descendant combinator EG #N0 .list-show-name
+                    console.log(changes)
+                    console.log(findElement)
+                    findElement.innerHTML = newHTML;
+          throw ("ebd")
+                    
+  
+      }
+
+  
+      theText = element.genres;
+      if (theText.toLowerCase().includes(searchText)) // Definitely exists in the text - amend the HTML
+      {
+                // Keep a record of the original text to restore later
+                if (!(theIndex in changes)) 
+                              changes[theIndex] = {}; 
+                              console.log(theText)
+                              
+                
+                changes[theIndex].genres = theText;
+                newHTML = theText.replaceAll(searchText,"<span class='blueText'>" + searchText + "</span>");
+                console.log(newHTML)
+                // SPACE:  descendant combinator EG #N0 .summary-flex-container
+                let findElement = document.querySelector("#" + theId + " .summary-flex-container");
+                findElement = findElement.children;
+                console.log(findElement)
+                console.log(findElement[0]) 
+                console.log(findElement[3]) 
+                console.log(findElement[4]) 
+                console.log(findElement[5]) 
+                console.log(findElement[6])
+                findElement[4].firstChild.innerHTML = newHTML;
+                console.log(findElement[4]) 
+                throw 12 
+                    console.log(changes)
+                    console.log(findElement)
+                    console.log(newHTML)
+                    // let el = findElement.find(':nth-child(' + '5' + ')');
+                    console.log(el.innerHTML)
+                    console.log(el)
+                    throw 12
+                  let children = findElement.children;
+                    findElement = document.querySelector(".summary-flex-container: nth-child(6)"); 
+                     console.log(findElement.innerHTML)
+                    findElement.innerHTML = newHTML;
+                    console.log(findElement.innerHTML)
+          throw ("ebd")
+
+              }
+            }     
+
+
+
 
 // remove HTML nodes
 function removeChildren(node) {
@@ -548,7 +753,7 @@ function shows_list_setup() {
   // Populate the Shows List
      allShows.forEach((element,index) => {
                              globalCount++;
-                             let ok = createShowEntry(element);
+                             let ok = createShowEntry(element,index);
                              if (!ok) {
                                          // Erroneous entry - record index
                                          errorArray.push(index);
@@ -615,7 +820,7 @@ function shows_list_setup() {
       </div>
 */
 
-function createShowEntry(element) {
+function createShowEntry(element, index) {
           
           let img = document.createElement("img"); // SHOW IMAGE
           img.setAttribute("class", "show-image");
@@ -716,7 +921,8 @@ function createShowEntry(element) {
                   genresArray = [element.type];
 
           paragraph2 = document.createElement("p");
-          paragraph2.innerText = genresArray.join(" | ")
+          // New field 'genres' added to allShows so that Search can be done by 'genre'
+          paragraph2.innerText = allShows[index].genres = genresArray.join(" | ");
           paragraph.append(paragraph2);
           addInfoDiv.append(paragraph); 
 
@@ -753,6 +959,10 @@ function createShowEntry(element) {
 
           let showEntryDiv = document.createElement("div");
           showEntryDiv.setAttribute("class", "show-entry");
+          // the 'id' for the entire Show Entry will be called for example, N10.
+          // The number being the index of the allShows array
+          showEntryDiv.setAttribute("id","N" + index); 
+
           showEntryDiv.append(figure);
           showEntryDiv.append(header);
           showEntryDiv.append(theDiv1);

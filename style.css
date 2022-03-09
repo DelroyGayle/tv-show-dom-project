@@ -96,7 +96,7 @@ body {
 .shows-searchbar-flexcontainer {
   display: flex;
   justify-content: center;
-  gap: 1em;
+  gap: 5em;
 }
 
 .shows-searchbar {
