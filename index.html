@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TV Show Project | Delroy Gayle (DelroyGayle)</title>
     <link href="style.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   </head>
 
@@ -12,9 +16,39 @@
     <div id="root"></div>
 
     <div class="mainHeading">MOVIES GALORE!</div>
-    <main class="showselector">
+    <!-- Shows Search -->
+
+    <div class="shows-searchbar-flexcontainer">
+      <div id="hideMeAfter10Seconds" class="instructions">
+        <!-- #8594 RIGHT ARROWS #8650 DOUBLE DOWN ARROWS -->
+        <div class="ins">
+          <p class="righttext">Live Search Bar &#8594;&#8594;&#8594;</p>
+          <p>Results are shown as you type. Results narrow as you continue
+          typing.<br />Click either the image or the name of the show to display
+          the episodes of the selected show.</p>
+          <span class="lefttext">&#8650 &#8650 &#8650 &#8650 &#8650 &#8650 &#8650 &#8650 &#8650 &#8650</span>
+      </div></div>
+      <div class="shows-searchbar">
+        <input
+          type="text"
+          id="shows-query"
+          name="q"
+          placeholder="Shows Listing Search"
+        />
+      </div>
+    </div>
+    <main class="episodes-display">
       <!-- Added a field to display the name of the show -->
-      <h2 class="showname"></h2>
+      <section class="flex-container">
+        <div class="box">
+          <button id="homebutton" class="btn">
+            <i class="fa fa-home"></i> Home
+          </button>
+        </div>
+        <div class="box"><h2 class="showname"></h2></div>
+        <!-- This is necessary. Based on https://stackoverflow.com/questions/32378953/keep-the-middle-item-centered-when-side-items-have-different-widths -->
+        <div class="box"></div>
+      </section>
       <!-- Display Info such as the number of episodes 73/73 -->
       <div>
         <p class="display-message"></p>
@@ -25,8 +59,8 @@
         <select name="show-select-menu" id="show-select-menu"></select>
         <!-- Episode Selector-->
         <select name="episode-select-menu" id="episode-select-menu"></select>
-        <!-- Search -->
-        <div class="thesearchbar">
+        <!-- Episodes Search -->
+        <div>
           <input
             type="text"
             id="movie-query"
@@ -41,6 +75,7 @@
       </section>
     </main>
     <main class="shows-list"></main>
+    <!-- FOOTER -->
     <!-- TVMaze.com info -->
     <footer class="footer">
       <div class="tvmaze-info"></div>

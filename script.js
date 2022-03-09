@@ -1,44 +1,55 @@
 //You can edit ALL of the code here
 
 
-// Level 500 Changes - Add a Show List and Search
+// Level 500 Changes - Add Show List and Search
 
 // Global Variables/Settings
   const mainDisplayDiv = document.querySelector(".gridDisplay");
   const tvMazeInfo = document.querySelector(".tvmaze-info"); // tvMaze info
-  const searchBar = document.getElementById("movie-query"); // The Search Bar
+  const episodesSearchBar = document.getElementById("movie-query"); // The Episodes Search Bar i.e. Level 400
   const displayMessage = document.getElementsByClassName("display-message");
   const episodeSelectMenu = document.getElementById("episode-select-menu"); // Episode Selector
   const showSelectMenu = document.getElementById("show-select-menu"); // Show Selector
   const errorMessagesElement = document.getElementsByClassName("error-messages");
   const showName = document.getElementsByClassName("showname");
-  const showSelectorDisplay = document.getElementsByClassName("showselector");
+  const episodesDisplay = document.getElementsByClassName("episodes-display");
   const showsList = document.getElementsByClassName("shows-list");
+  const homeButton = document.getElementById("homebutton");
+  const showsSearchBar = document.getElementById("shows-query"); // The Shows List Search Bar i.e. Level 500
 
   const FETCHOK = 200;
   const BADURL = 404;
   const SERVER_ERROR = 500;
+
+  const EPISODES_DISPLAYED = 0;
+  const FILTERED_SHOWS_DISPLAYED = 1;
+  const ALL_SHOWS_DISPLAYED = 2;
 
   let allShows;
   let allShowsTotal;
   let showNumber = 0;
   let padSize;
   let errorMessages = "";
-  let firstFetch = true;
-  let fetchErrorOccurred = false;
   let saveAllEpisodes;
   let saveShowNumber;
-  let globalCount=0;
+  let globalCount = 0;
+  let showsListFlag;     // Indicate if the Shows List is displayed
+  let showsListFiltered; // Indicate if the Shows List is filtered
 
 // Event Listeners
-  searchBar.addEventListener("keyup", searchFunction);
+  episodesSearchBar.addEventListener("keyup", episodesSearchFunction);
   episodeSelectMenu.addEventListener("change",jumpToEpisode);
   showSelectMenu.addEventListener("change",selectShow);
+  homeButton.addEventListener("click",displayShowsList);
+  //showsSearchBar.addEventListener("keyup", showsSearchFunction);
 
   let tvmInfoDiv;
   let allEpisodes;
   let allEpisodesTotal;
-  let searchText = ""; // this variable needs to be global
+  let episodesSearchText = ""; // this variable needs to be global
+  episodesSearchBar.value = "";
+  let showsSearchText = ""; // this variable needs to be global
+  showsSearchBar.value = "";
 
   // Commence Setup
   window.onload = setup;
@@ -50,18 +61,22 @@ function setup() {
 
   // Set Up the shows list
   shows_list_setup();
+  footer_setup();
   // alert("MOVIES GALORE! Shows List.\nClick either the Show Image or the Show Name to view the episodes.\n");
 }
 
 function getEpisodesPage(event) {
-    // event.target.id will be either of the form IMnnnn for a clicked Show Image OR the form Mnnnn for a clicked Show Name
+    showsListFlag = true; // About to display the showsList // xxx
+    // event.target.id will be either of the form IMnnnn for a clicked Show Image OR of the form Mnnnn for a clicked Show Name
     let theId = event.target.id;
+    episodesSearchBar.value = "" // Ensure episodes SearchBox is cleared
 
     if (theId.startsWith('M'))
-            theId = +theId.substr(1)
+            theId = +theId.substr(1);
     else if (theId.startsWith('IM'))
-            theId = +theId.substr(2)
+            theId = +theId.substr(2);
     else {
+                hideViews();
                 alert("An Internal Error has occurred. Mnnn/IMnnn expected,\nInstead got " + theId +
                       "Please investigate - Application terminated");
                 throw new Error(`An Error Has Occurred. ID = ${theId}`); // Terminate the program     
@@ -70,21 +85,20 @@ function getEpisodesPage(event) {
     showNumber = allShows.findIndex(element => element.id === theId);
     // Doubtful but just in case if something went wrong
     if (showNumber < 0) {
+                               hideViews();
                                alert(`An Internal Error has occurred. Could not find Show with this ID: ${theId}\nApplication terminated`);
                                throw new Error(`ID Error Has Occurred. ID = ${theId}`); // Terminate the program     
     };   
 
-    
-    showsList[0].style.display = "none";            // Hide the Shows List view
-    showSelectorDisplay[0].style.display = "block"; // Show the Episodes List view
+
     // Handle Episodes Processing
-    fetchShowAndEpisodes() 
+    fetchShowAndEpisodes();
+    showsSearchBar.focus(); // Set focus here //++
 }
 
 function fetchShowAndEpisodes() {
       let currentShowID = allShows[showNumber].id; // Fetch Show ID from the array
       let fetchRequest = `https://api.tvmaze.com/shows/${currentShowID}/episodes`;
-      fetchErrorOccurred = false;
 
       fetch(fetchRequest)
         .then(response => {
@@ -96,24 +110,26 @@ function fetchShowAndEpisodes() {
                 }
 
                 else if (status === 500) {
+                    hideViews();
                     alert("An Internal Server Error has occurred.\nPlease investigate your Server Application.");
-                    fetchErrorOccurred = true;
                     throw new Error(`An Error Has Occurred. Error Code = ${status}`); // Terminate the program
                 }
 
                 else if (status === 404) {
-                    alert(`It appears that An Incorrect Link Has Been Used.\nPlease Check This Link :"${currentShowID}"`);
                     errorMessages += `<p>404 Error Occurred wuth ${currentShowID}</p>`;
-                    fetchErrorOccurred = true;
-                    handleFetchError();
+                    update_footer_text(); // Update Footer Text Error Messages
+                    hideViews();
+                    alert(`It appears that An Incorrect Link Has Been Used.\nPlease Check This Link :"${currentShowID}"`);
+                    displayShowsList()
                 }
 
                 else {
+                    errorMessages += `<p>${message}</p>`;
+                    update_footer_text(); // Update Footer Text Error Messages
+                    hideViews();
                     let message = `An Error Has Occurred whilst loading "${currentShowID}". Error Code = ${status}`; 
                     alert(message);
-                    errorMessages += `<p>${message}</p>`;
-                    fetchErrorOccurred = true;
-                    handleFetchError();
+                    displayShowsList()
                 };               
             })
 
@@ -121,32 +137,34 @@ function fetchShowAndEpisodes() {
                            // Retrieve all the episodes
                            allEpisodes = data;
                            allEpisodesTotal = allEpisodes.length;
+
                            padding_setup();
                            episodes_setup();
-                           firstFetch = false;
                       })
 
         .catch(error => {
                            let message = `There is an issue regarding: ${fetchRequest} - Show: ${allShows[showNumber].name}`;
-                           alert(message + `\nThe data structure of this show does not match the expected Data Structure of an Episode.`);
-                           errorMessages += `<p>${message}</p>`;
-                           fetchErrorOccurred = true;
-                           handleFetchError();
+                           let message2 = `${error.name}: ${error.message}`
+                           errorMessages += `<p>${message} - ${message2}</p>`;
+                           update_footer_text(); // Update Footer Text Error Messages
+                           hideViews();
+              alert(`${message}\nThe data structure of this show does not match the expected Data Structure of an Episode. Load Aborted.\n${message2}`);
+                           displayShowsList()
                         });
 }
 
-function handleFetchError() {
-         if (firstFetch) { // This happened at the very beginning of the program
-                           // i.e. the first ever Fetch, so abort
-                           alert("Catastrophic error has occurred - investigate 'shows.js' - it appears to be corrupted");
-                           throw new Error(`Could not load shows.`); // Terminate the program
-                         };
+function update_footer_text() {
+          if (errorMessages != "")
+                   errorMessagesElement[0].innerHTML = errorMessages;    
+}
 
-         // Otherwise Restore Previous Show & Redisplay the Episodes
-        allEpisodes = [...saveAllEpisodes];
-        allEpisodesTotal = allEpisodes.length;
-        showNumber = saveShowNumber;
-        episodes_setup();
+// Taken from https://www.sitepoint.com/delay-sleep-pause-wait/
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
 }
 
 function padding_setup() {
@@ -158,13 +176,15 @@ function padding_setup() {
 }
 
 function episodes_setup() {     
+    showsList[0].style.display = "none"; // Hide the Shows List view
+    showsListFlag = false; // About to display the showsList // xxx
+    episodesDisplay[0].style.display = "block"; // Display the Episodes List view
 
   // remove previous display
     removeChildren(mainDisplayDiv); 
     removeChildren(episodeSelectMenu);
     removeChildren(showSelectMenu);
-    removeChildren(tvmInfoDiv);
-    removeChildren(tvMazeInfo);
+
 
 // set up the table and dropdown menu for ALL episodes
     let option = document.createElement('option');
@@ -181,9 +201,16 @@ function episodes_setup() {
 
     showAll(true); // display all episodes
 
-       
- // Info regarding TVMaze.com
- // EG <a href="www.tvmaze.com">The movies displayed on this site have been sourced from TVMaze.com</a>
+    // Update error messages display
+    update_footer_text();  
+
+    showName[0].innerText = allShows[showNumber].name; // Display the name of the show
+    episodesSearchBar.focus(); // Set focus here
+}
+
+function footer_setup() {
+   // Info regarding TVMaze.com
+   // EG <a href="www.tvmaze.com">The movies displayed on this site have been sourced from TVMaze.com</a>
    
     tvmInfoDiv = document.createElement('div');
     let paragraph = document.createElement('span');
@@ -200,11 +227,26 @@ function episodes_setup() {
     tvmInfoDiv.appendChild(theLink);
     tvMazeInfo.appendChild(tvmInfoDiv);
 
-    if (errorMessages != "") // There were issues regarding the Fetching of Shows - display error messages in the Footer
-           errorMessagesElement[0].innerHTML = errorMessages;
+    update_footer_text();  // If there were issues regarding the Fetching of Shows - display error messages in the Footer
+}
 
-    showName[0].innerText = allShows[showNumber].name; // Display the name of the show
-    searchBar.focus(); // Set focus here      
+function displayShowsList() {
+      // Hide the Episodes List view
+     episodesDisplay[0].style.display = "none";
+     showsList[0].style.display = "block";  // Display the Shows List view
+     showsListFlag = true; // Indicate this // xxx
+
+}
+
+function hideViews() {
+     if (showsListFlag)
+              return;
+
+     // Hide the Show Selector view 
+     showsList[0].style.display = "none";
+     // Hide the Episodes List view
+     episodesDisplay[0].style.display = "none";     
+     sleep(100); // 0.1 seconds delay
 }
 
 function populateShowMenu() {
@@ -230,7 +272,31 @@ function showAll(setup_options) {
                                 }           
        };
        displayMessage[0].innerText = `Displaying ${allEpisodesTotal}/${allEpisodesTotal} episodes.`;
+       let elem = displayMessage[0]; // xxx
+       elem = document.querySelector('#homebutton');
+       elem = displayMessage[0];
+        elem = document.querySelector('#homebutton');
+let rect = findPos(elem);
+console.log("x: "+ rect[0]+window.scrollX);
+console.log("y: "+ rect[1]+window.scrollY);
+
+elem.style.left = (Number(94)) + "px";
 }
+
+function findPos(obj) {
+	var curleft = curtop = 0;
+
+  // Every time we find a new object, we add its offsetLeft and offsetTop to curleft and curtop.
+
+	do {
+			curleft += obj.offsetLeft;
+			curtop += obj.offsetTop;
+		} while (obj = obj.offsetParent); //  I use the = assignment operator to change the value of obj to obj.offsetParent.
+
+// Finally, when the while loop has quit, we return an array with the calculated coordinates 
+	return [curleft,curtop];
+}
+
 
 function createAllEpisodes(index) {
     const episodeDiv = document.createElement('div'); // main 'div' to append to
@@ -245,6 +311,11 @@ function createAllEpisodes(index) {
     episodeDiv.appendChild(text); // add the title
 
     addImage(episodeDiv,source,episodeInfo);
+
+    
+    // Show with ID# 3353 (Kyxhr) had a 'null' summary - cater for it
+    if (!source.summary) // i.e. ensure it is a string
+            source.summary = "";
 
     // Remove all <p></p> then add the text using <span>
     const summary = handle_paragraph(source.summary);
@@ -288,18 +359,18 @@ function handle_paragraph(text) {
           return paragraph;
 }
 
-// Perform a 'live' search
-function searchFunction(useThisValue) {
+// Perform a 'live' search regarding the Episodes
+function episodesSearchFunction(useThisValue) {
  
-   searchText = searchBar.value.trim(); // this is the keyed-in value as the user types
+   episodesSearchText = episodesSearchBar.value.trim(); // this is the keyed-in value as the user types
    removeChildren(mainDisplayDiv); // remove previous display
-   if (!searchText) // empty input - show all episodes
+   if (!episodesSearchText) // empty input - show all episodes
    {
          showAll(false);
          return;
    }
   
-   let lowerCase = searchText.toLowerCase();
+   let lowerCase = episodesSearchText.toLowerCase();
 
    // filter out matching episodes
    const searchResults = allEpisodes.filter(element => element.name.toLowerCase().includes(lowerCase) ||
@@ -404,11 +475,11 @@ function jumpToEpisode(event) {
 
   // If search results are currently being displayed
   // reset display first by showing ALL episodes
-    if (searchText !== "")
+    if (episodesSearchText !== "")
     {
        // reset these values
-       searchText = "";
-       searchBar.value = "";
+       episodesSearchText = "";
+       episodesSearchBar.value = "";
        removeChildren(mainDisplayDiv); // remove previous display
        showAll(false); // show all episodes
     }
@@ -453,8 +524,8 @@ function jumpToEpisode(event) {
 
 function selectShow(event) {
        // reset these values
-       searchText = "";
-       searchBar.value = "";
+       episodesSearchText = "";
+       episodesSearchBar.value = "";
        // Make a copy of the current Episodes details; just in case an error occurs
        saveAllEpisodes = [...allEpisodes];
        saveShowNumber = showNumber;
@@ -463,8 +534,8 @@ function selectShow(event) {
 }
 
 function shows_list_setup() {
-  // Hide the Show Selector view
-     showSelectorDisplay[0].style.display = "none";
+  // Hide the Episodes List view
+     episodesDisplay[0].style.display = "none";
 
   // Sort all the shows into alphabetical (case-insensitive) order
      allShows.sort(function (show1, show2) {
@@ -496,7 +567,7 @@ function shows_list_setup() {
         allShowsTotal = allShows.length;
         if (allShowsTotal === 0) // very doubtful
         {
-                    alert("Catastrophic error has occurred - no shows were loaded. The shows source appears empty!");
+                    alert("Catastrophic error has occurred - no shows were loaded. The shows source appears empty.");
                     throw new Error(`Could not load shows.`); // Terminate the program
         };
     }
@@ -534,11 +605,11 @@ function shows_list_setup() {
           <div class="summary-flex-container">
             <p class="item">Official Website: movies.com</p>
             <p class="item">Premiered: 22nd February 1990</p>
-            <p class="item">Rated: 8.5&nbsp;&nbsp;</p>
+            <p class="item">Rated: 8.5</p>
             <hr>
             <p class="item">Genres: abc | def | high</p>
             <p class="item">Status: running</p>
-            <p class="item">Runtime: 60 minutes&nbsp;&nbsp;</p>
+            <p class="item">Runtime: 60 minutes</p>
           </div>
         </div>
       </div>
@@ -551,7 +622,7 @@ function createShowEntry(element) {
           img.setAttribute("id","IM" + element.id); // I.E. the 'id' for this image will be called for example, for Game of Thrones, IM82
           // Discovered for example - Show: "Cosmos", ID:1127 has no image!!
           if (!element.image) {
-                    let message = `The Show: ${element.name} - ID: ${element.id} has no image. Load Aborted!"`; 
+                    let message = `The Show: ${element.name} - ID: ${element.id} has no image. Load Aborted.`; 
                     errorMessages += `<p>${message}</p>`;
                     return false; // Indicate that this entry was not successful
           }
