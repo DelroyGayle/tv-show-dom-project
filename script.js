@@ -50,6 +50,7 @@
   episodesSearchBar.value = "";
   let showsSearchText = ""; // this variable needs to be global
   showsSearchBar.value = "";
+  let filterChanges; // Keep track of all changes when filtering the Shows List Display
 
   // Commence Setup
   window.onload = setup;
@@ -432,8 +433,8 @@ function hideShow(index) {
     In the end, all that should be displayed are the Show Entries that smatch 'searchText'
 */
 function performFilter(searchText) {
-    let changes = [];
-    let nameChanges = [];
+    filterChanges = [];
+    let nameChanges = []; // ++
     let showChanges = [];
   
 
@@ -445,9 +446,9 @@ function performFilter(searchText) {
                           return;                                        
                                                                      }
 
-            let theId = "N" + index;
+            let theId = "N" + index; // #id of the form Nnnn
             let theEntry = document.getElementById("N" + index); // Each entry as an ID of the form Nnnn                                                                     
-            processHTML(theId,theEntry,searchText,element,changes,index)
+            processHTML(theId,theEntry,searchText,element,filterChanges,index)
     }
       
           
@@ -455,72 +456,100 @@ function performFilter(searchText) {
 
 }
 
+  /*
+  Convert each character of a string so that it can be used in a regex without it having any special meaning
+  For example, . has a special meaning in regular expressions however instead of using \. use \u002E instead
+  Likewise \n would be interpreted as CARRIAGE RETURN so use \u000D INSTEAD
+  \d, \D, \f, \n, \r, \s, \S, \t, \v, \w, \W, \0 
+  ALL HAVE SPECIAL MEANINGS IN JAVASCRIPT REGULAR EXPRESSIONS
+  \uhhhh	Matches a UTF-16 code-unit with the value hhhh (four hexadecimal digits).
+  */
+
+  function convertEachChar(string) {
+            return string.split().map(c => `\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`).join("")
+  }
+
   function processHTML(theId,theEntry,searchText,element,changes,index) {
 /*
     Remove any possibility of the searchText being part of a HTML tag
     e.g. if the user types 'p' it ought NOT to match <p></p>
 
-    Javascript does not support regex lookbehind assertions so what follows is
+    Javascript does not support regex lookbehind assertions so what follows isc
     a convoluted workaround using regex - you have been warned :)
 
     REGEX: <[^>]*(SEARCHTEXT).*?>
 */
 
-let usingName = true, usingSummary = false, usingGenre = false;
-let localChanges = [];
-const SUMMARY = 0, NAME = 1, GENRES = 2;
-let tagCount,textCount,newHTML,theText;
+  let localChanges = [];
+  const SUMMARY = 0, NAME = 1, GENRES = 2; // ++
+  let tagCount,textCount,newHTML,theText; // ++ textCount
 
-  // NESTED FUNCTION for Scoping reasons
+  // NESTED FUNCTIONS for Scoping reasons
 
       function replaceTags(match) {
 
  // EG 'p' Matches <img class="show-image" id="IM167" src="http://static.tvmaze.com/uploads/images/medium_portrait/0/2330.jpg">
  // as well as <p class="item"> <p> </p> ETC 
 
-           ++tagCount; // Indicate that a change is to be made
-          // replace with <@number> which is an illegal HTML entry
+           ++tagCount; // Indicate that a change is about to be made
+          // replace with <number> which is a meaningless HTML tag
 
-          // Record the match in order to restore later
-          localChanges[tagCount] = match;
+          // Record the match in order to restore it later
+           localChanges[tagCount] = match;
+           console.log(tagCount,match)
          
-          return `<@${tagCount}>`;          
+           return `<${tagCount}>`;          
       }
 
       function putChangesBack() {
-      // <@number> - number being 1 to tagCount, note: zero is EMPTY
+      // <number> - number being 1 to tagCount, note: zero is EMPTY
+      // LIFO order
+         for (let i=tagCount; i>0; --i) {
+                 console.log(`<${i}>`, localChanges[i]);
+            }
       for (let i=tagCount; i>0; --i) {
-                 newHTML = newHTML.replace(`<@${i}>`, localChanges[tagCount])
+                 newHTML = newHTML.replace(`<${i}>`, localChanges[i])
             }
       }
 
-      // console.log(element.summary);
-      // console.log(element.name);
-      // console.log(element.genres);throw 12 /++
-
-      let regex = new RegExp("<[^>]*" + searchText + ".*?>","gi"); //  REGEX: <[^>]*(SEARCHTEXT).*?>
+      let regex = new RegExp("<[^>]*" + convertEachChar(searchText) + ".*?>","gi"); //  REGEX: <[^>]*(SEARCHTEXT).*?> 
+      // EG for 'p' ==> REGEX: <[^>]*\u0070.*?>
    
-      theIndex = String(index);
+      theIndex = String(index); // convert number to a string for usage in an Object
 
       tagCount = 0;
       theText = element.summary;
       if (theText.toLowerCase().includes(searchText))
       {
+        console.log(theText)
                 newHTML = theText.replace(regex,replaceTags);
-                if (newHTML.includes(searchText)) // Definitely exists in the text - amend the HTML
+                console.log(newHTML)
+                if (newHTML.includes(searchText)) // searchText Definitely exists in the text - amend the HTML
                 {
                     // Keep a record of the original text to restore later
                     if (!(theIndex in changes)) 
                               changes[theIndex] = {}; 
                     }
                     changes[theIndex].summary = theText;
-                    newHTML = newHTML.replaceAll(searchText,"<span class='blueText'>" + searchText + "</span>");
+                    console.log(searchText)
+                    console.log(convertEachChar(searchText))
+                    // Convert 'plain text' into REGEX before matching 
+                    regex = new RegExp(convertEachChar(searchText),"gi"); // global, case-insensitive 
+                    //newHTML = theText.replace(regex,"<span class='blueText'>" + searchText + "</span>"); // ++
+
+                    // $&	Inserts the matched substring.
+                    newHTML = newHTML.replace(regex,"<span class='blueText'>$&</span>");
+                    
+                    // EG each e<span class='blueText'>p</span>isode 
+                    // IE each episode
+                    console.log(newHTML)
 
                     if (tagCount) 
                           putChangesBack();
 
                     let findElement = document.querySelector("#" + theId + " .show-summary"); // SPACE:  descendant combinator EG #N0 .show-summary
                     findElement = findElement.firstChild.firstChild;
+                    changes[theIndex].summaryNode = findElement;
                     console.log(changes)
                     console.log(findElement)
                     findElement.innerHTML = newHTML;                   
@@ -528,16 +557,25 @@ let tagCount,textCount,newHTML,theText;
 
  
       theText = element.name;
-      if (theText.toLowerCase().includes(searchText)) // Definitely exists in the text - amend the HTML
+      if (theText.toLowerCase().includes(searchText)) // searchText Definitely exists in the text - amend the HTML
       {
                 // Keep a record of the original text to restore later
                 if (!(theIndex in changes)) 
                               changes[theIndex] = {}; 
                 
                 changes[theIndex].name = theText;
-                newHTML = theText.replaceAll(searchText,"<span class='blueText'>" + searchText + "</span>");
+                // Convert 'plain text' into REGEX before matching 
+                let regex = new RegExp(convertEachChar(searchText),"gi"); // global, case-insensitive 
+                // EG for '2' ==> \u0032 ==> <span class='blueText'>2</span>
+                console.log(regex)
+
+                // $&	Inserts the matched substring.
+                newHTML = theText.replace(regex,"<span class='blueText'>$&</span>");
+
+                console.log(newHTML)
 
                 let findElement = document.querySelector("#" + theId + " .list-show-name"); // SPACE:  descendant combinator EG #N0 .list-show-name
+                changes[theIndex].nameNode = findElement;
                     console.log(changes)
                     console.log(findElement)
                     findElement.innerHTML = newHTML;
@@ -548,7 +586,7 @@ let tagCount,textCount,newHTML,theText;
 
   
       theText = element.genres;
-      if (theText.toLowerCase().includes(searchText)) // Definitely exists in the text - amend the HTML
+      if (theText.toLowerCase().includes(searchText)) // searchText Definitely exists in the text - amend the HTML
       {
                 // Keep a record of the original text to restore later
                 if (!(theIndex in changes)) 
@@ -557,10 +595,51 @@ let tagCount,textCount,newHTML,theText;
                               
                 
                 changes[theIndex].genres = theText;
-                newHTML = theText.replaceAll(searchText,"<span class='blueText'>" + searchText + "</span>");
+                // Convert 'plain text' into REGEX before matching 
+
+                let regex = new RegExp(convertEachChar(searchText),"gi"); // global, case-insensitive
+
+                // $&	Inserts the matched substring.
+                newHTML = theText.replace(regex,"<span class='blueText'>$&</span>");
+
                 console.log(newHTML)
+                //console.log(newHTML,searchText,100,theText,200,theText.replaceAll(searchText,"<span class='blueText'>" + searchText + "</span>")) //++
                 // SPACE:  descendant combinator EG #N0 .summary-flex-container
+
+                // find the GENRES Child Node
                 let findElement = document.querySelector("#" + theId + " .summary-flex-container");
+
+                let children = findElement.children;
+                console.log(children);
+                
+                for (let i = 0; i < children.length; i++) {
+                  // Search for Genres
+                       if (children[i].innerText.startsWith("Genres"))
+                       {
+                         console.log(children[i].innerText)
+                         console.log(children[i].tagName);
+                         console.log(children[i].nodeName)
+                         console.log(children[i].innerHTML, newHTML)
+                         changes[theIndex].genresNode = children[i];
+                    console.log(changes)
+
+                         children[i].innerHTML = newHTML;
+                         // EG innerHTML: "Action | <span class=\"blueText\">D</span>rama | Thriller"
+                         // IE Action | Drama | Thriller
+                         throw 14
+                         break
+                       }
+  console.log(children[i].tagName);
+    console.log(children[i].nodeName)
+  console.log(children[i].nodeName.firstChild)
+}
+throw 12
+                console.log(findElement[0]) 
+                console.log(findElement[3]) 
+                console.log(findElement[4]) 
+                console.log(findElement[5]) 
+                console.log(findElement[6])
+throw 12
                 findElement = findElement.children;
                 console.log(findElement)
                 console.log(findElement[0]) 
@@ -578,7 +657,7 @@ let tagCount,textCount,newHTML,theText;
                     console.log(el.innerHTML)
                     console.log(el)
                     throw 12
-                  let children = findElement.children;
+                  children = findElement.children;
                     findElement = document.querySelector(".summary-flex-container: nth-child(6)"); 
                      console.log(findElement.innerHTML)
                     findElement.innerHTML = newHTML;
