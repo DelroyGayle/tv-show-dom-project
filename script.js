@@ -51,6 +51,16 @@
   let filterChanges; // Keep track of all changes when filtering the Shows List Display
   let rememberIdLoc = {}; // Keep tract of all the Nnnn IDs
 
+
+  /*** 
+  * THERE IS AN OBSCURE BUG WHICH I CANNOT FIGURE OUT TO DO WITH allShows[index].genres
+  * FIRSTLY, SOMEWHERE, SOMEHOW, allShows[index].genres IS CHANGED FROM A STRING TO AN ARRAY!!
+  * SECONDLY, ITS VALUE GETS CHANGED (AFTER IT HAS BEEN INITIALISED) SOMEHOW, SOMEWHERE?? I JUST CANNOT SEE WHERE!
+  * SO I HAVE GOING TO USE A TOTALLY SEPARATE ARRAY TO HOLD 'genres'
+  ***/
+
+  const genresTable = [];
+
   // Commence Setup
   window.onload = setup;
 
@@ -296,7 +306,7 @@ function showAllEpisodes(setup_options) {
                                 }           
        };
        displayMessage[0].innerText = `Displaying ${allEpisodesTotal}/${allEpisodesTotal} episodes.`;
-       let elem = displayMessage[0]; // xxx
+       let elem = displayMessage[0]; // xxx // ++
        elem = document.querySelector('#homebutton');
        elem = displayMessage[0];
         elem = document.querySelector('#homebutton');
@@ -411,10 +421,10 @@ function episodesSearchFunction(useThisValue) {
 }
 
 // Perform a 'live' search regarding the Shows List
-function showsSearchFunction(useThisValue) {
+function showsSearchFunction(keyedValue) {
  
    showsSearchText = showsSearchBar.value.trim(); // this is the keyed-in value as the user types
-  
+ 
     if (showsListFiltered) {
           reverseChanges() // Reverse all the Changes Made
           showAllEntries();
@@ -425,12 +435,41 @@ function showsSearchFunction(useThisValue) {
          showsSearchBar.value = ""; // ensure blank
          return;
    };
+
+   // IGNORE < OR >
+   if (ignoredChars(keyedValue.keyCode)) {
+         return;
+   }
   
    let lowerCase = showsSearchText.toLowerCase();
 
    // filter out matching shows
    performFilter(lowerCase);
    return
+}
+
+// IGNORE < OR >  
+function ignoredChars(keyCode) {
+  const OPENANGLED = 188, CLOSEANGLED = 190;
+  let theString;
+
+      if (keyCode === OPENANGLED)
+      {
+          theString = "<"
+      } 
+
+      else if (keyCode === CLOSEANGLED)
+      {
+          theString = ">"
+      }
+
+      else
+          return false;
+      
+      // REMOVE THE CHARACTER & UPDATE THE VALUE 
+      showsSearchText = showsSearchText.replaceAll(theString,"");
+      showsSearchBar.value = showsSearchText;
+      return true;      
 }
 
 function fetch_N_ID(index) {
@@ -475,7 +514,7 @@ function performFilter(searchText) {
            
     filterChanges = {}; // reset
 
-    allShows.forEach( (element, index, theArray) => {
+    allShows.forEach( (element, index) => {
             if (! (element.name.toLowerCase().includes(searchText) || element.summary.toLowerCase().includes(searchText) ||
                                                                       fetchGenres(index).toLowerCase().includes(searchText)) ) {
                           hideShow(index);     
@@ -608,14 +647,9 @@ function performFilter(searchText) {
       }
 
       tagCount = 0;
-      // BUG FIX 
-      theText = allShows[index].genres; // the genres string hs been computed earlier and is kept in the allShows array 
-      if (typeof theText != "string")
-      {
-           theText = theText[0]
-      }
 
       theText = fetchGenres(index); 
+
       if (theText.toLowerCase().includes(searchText))
       {
 
@@ -658,10 +692,11 @@ function performFilter(searchText) {
 
                 // Keep a record of the original text to restore later
                 if (!(theIndex in changes)) 
-                              changes[theIndex] = {}; 
-                
-                changes[theIndex].genres = theText;
+                              changes[theIndex] = {};
+
                 changes[theIndex].genresNode = children[k];
+                changes[theIndex].genres = children[k].innerHTML;
+
 
                 // Convert 'plain text' into REGEX before matching 
                 regex = new RegExp(convertEachChar(searchText),"gi"); // global, case-insensitive
@@ -675,28 +710,21 @@ function performFilter(searchText) {
 
                 // EG innerHTML: "Action | <span class=\"colouredtext\">D</span>rama | Thriller"
                 // IE Action | Drama | Thriller
+
                 children[k].innerHTML = newHTML;
           }    
       }     
  }
-
-// the genres string hs been computed earlier and is kept in the allShows array 
-function fetchGenres(index) {
-
-      let genres = allShows[index].genres; // the genres string hs been computed earlier and is kept in the allShows array 
 
       /*** 
        * NOTE: THIS IS A WORKAROUND BECAUSE OF AN OBSCURE BUG WHICH I CANNOT FIGURE OUT
        * SOMEWHERE, SOMEHOW, allShows[index].genres IS CHANGED FROM A STRING TO AN ARRAY!!
       ***/
 
-      if (typeof genres !== "string")
-      {
-           return genres[0];
-      }
+// the genres string hs been computed earlier and is kept in the genresTable array 
+function fetchGenres(index) {
 
-      else
-           return genres;
+      return genresTable[index];
 } 
 
 function reverseChanges() { // Reverse all the Changes Made
@@ -706,7 +734,7 @@ function reverseChanges() { // Reverse all the Changes Made
            if ("summary" in filterChanges[index]) {
                   filterChanges[index].summaryNode.innerHTML = filterChanges[index].summary;
            }
-           
+
            if ("name" in filterChanges[index]) {
                   filterChanges[index].nameNode.innerText = filterChanges[index].name;
            }
@@ -1047,6 +1075,7 @@ function createShowEntry(element, index) {
 
           // If GENRES is null, use TYPE instead
           let genresArray = [];
+          
           if (Array.isArray(element.genres) && element.genres.length > 0) {
                  genresArray = [...element.genres];
                  genresArray.sort(); // SORT THEM ALPHABETICALLY
@@ -1056,29 +1085,8 @@ function createShowEntry(element, index) {
                   genresArray = [element.type];
 
           paragraph2 = document.createElement("p");
-          // New field 'genres' added to allShows so that Search can be done by 'genre'
-          paragraph2.innerText = allShows[index].genres = genresArray.join(" | ");
-
-          if (typeof allShows[index].genres !== "string") // ++
-          {
-            alert(index)
-            alert(allShows[index].genres)
-          }
-
-          if (typeof genresArray.join(" | ") !== "string")
-          {
-            alert("G"+index)
-            alert(allShows[index].genres)
-            alert(genresArray.join(" | "))
-          }
-
-          if (index === 299)
-          {
-            console.log(genresArray)
-            console.log(paragraph2)
-            console.log(allShows[index].genres, typeof allShows[index].genres)
-            
-          }
+          // New array 'genresTable' incorporated so that Search can be done by 'genre'
+          paragraph2.innerText = genresTable[index] = genresArray.join(" | ");
 
           paragraph.append(paragraph2);
           addInfoDiv.append(paragraph); 

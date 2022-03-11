@@ -7,6 +7,7 @@
   --RoyalBlue: #4169e1;
   --indigo: #490990;
   --redtext: #d84141;
+  --antiquewhite: rgb(250, 235, 215);
 }
 
 .mainHeading {
@@ -19,6 +20,7 @@
 
 body {
   background: #f2f2f2;
+  background-color: var(--antiquewhite); /* Thank you Hatice */
   font-family: "Open Sans", sans-serif;
 }
 
@@ -170,7 +172,7 @@ body {
 }
 
 .blue-border {
-  border: solid var(--twitter-blue) 0.313em; /* 5px */
+  border: solid var(--twitter-blue) 0.6em;
 }
 
 .footer {
@@ -221,6 +223,7 @@ body {
 
 .show-summary {
   padding-right: 2em;
+  font-size: 1.2em;
 }
 
 .show-additional-info {
