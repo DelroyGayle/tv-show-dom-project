@@ -6,6 +6,7 @@
   --DodgerBlue: #1e90ff;
   --RoyalBlue: #4169e1;
   --indigo: #490990;
+  --redtext: #d84141;
 }
 
 .mainHeading {
@@ -107,7 +108,7 @@ body {
   font-size: 1.4em;
 }
 
-.ins {
+.instructions {
   background-color: var(--indigo);
   color: var(--white);
   margin: 3em 0em;
@@ -125,8 +126,8 @@ body {
   font-size: 32px;
 }
 
-#hideMeAfter10Seconds {
-  animation: hideAnimation 0s ease-in 10s;
+#hideMeAfter15Seconds {
+  animation: hideAnimation 0s ease-in 15s;
   animation-fill-mode: forwards;
 }
 
@@ -164,8 +165,8 @@ body {
   font-size: 1.25em; /* 20px; */
 }
 
-.blueText {
-  color: var(--twitter-blue);
+.colouredtext {
+  color: var(--redtext);
 }
 
 .blue-border {

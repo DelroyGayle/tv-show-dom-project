@@ -16,14 +16,12 @@
   const showsList = document.getElementsByClassName("shows-list");
   const homeButton = document.getElementById("homebutton");
   const showsSearchBar = document.getElementById("shows-query"); // The Shows List Search Bar i.e. Level 500
+  const showsSearchOption = document.getElementsByClassName("shows-searchbar-flexcontainer");
+  const animation = document.getElementById("hideMeAfter15Seconds");
 
   const FETCHOK = 200;
   const BADURL = 404;
   const SERVER_ERROR = 500;
-
-  const EPISODES_DISPLAYED = 0;
-  const FILTERED_SHOWS_DISPLAYED = 1;
-  const ALL_SHOWS_DISPLAYED = 2;
 
   let allShows;
   let allShowsTotal;
@@ -33,8 +31,8 @@
   let saveAllEpisodes;
   let saveShowNumber;
   let globalCount = 0;
-  let showsListFlag;     // Indicate if the Shows List is displayed
-  let showsListFiltered; // Indicate if the Shows List is filtered
+  let showsListFlag = true;     // Indicate if the Shows List is displayed
+  let showsListFiltered = false; // Indicate if the Shows List is filtered
 
 // Event Listeners
   episodesSearchBar.addEventListener("keyup", episodesSearchFunction);
@@ -51,11 +49,25 @@
   let showsSearchText = ""; // this variable needs to be global
   showsSearchBar.value = "";
   let filterChanges; // Keep track of all changes when filtering the Shows List Display
+  let rememberIdLoc = {}; // Keep tract of all the Nnnn IDs
 
   // Commence Setup
   window.onload = setup;
 
+  /* Align the Show Search Bar when instructions are being shown */
+
+// THIS DIDN'T WORK!!
+//   animation.addEventListener('animationstart', () => {
+//       showsSearchBar.style.marginTop = "4em";
+// })
+
+  animation.addEventListener('animationend', () => {
+      showsSearchBar.style.marginTop = "0em";
+})
+
 function setup() {
+
+  showsSearchBar.style.marginTop = "4em"; // Align the Show Search Bar when instructions are being shown - WORKAROUND - SEE ABOVE
   // Retrieve all available shows   
   allShows = getAllShows();
   allShowsTotal = allShows.length;
@@ -175,6 +187,7 @@ function padding_setup() {
 }
 
 function episodes_setup() {     
+    showsSearchOption[0].style.display = "none"; // Hide the Show Search Bar
     showsList[0].style.display = "none"; // Hide the Shows List view
     showsListFlag = false; // Indicate that no longer showing the Shows List
     episodesDisplay[0].style.display = "block"; // Display the Episodes List view
@@ -198,7 +211,7 @@ function episodes_setup() {
     option.text = "Select an episode ..."; // Placeholder
     episodeSelectMenu.appendChild(option);
 
-    showAll(true); // display all episodes
+    showAllEpisodes(true); // display all episodes
 
     // Update error messages display
     update_footer_text();  
@@ -232,9 +245,19 @@ function footer_setup() {
 function displayShowsList() {
       // Hide the Episodes List view
      episodesDisplay[0].style.display = "none";
-     showsList[0].style.display = "block";  // Display the Shows List view
-     showsListFlag = true;                  // Indicate this
+     showsSearchOption[0].style.display = "flex"; // Display the Show Search Bar
+     showsList[0].style.display = "block";        // Display the Shows List view
+     showsListFlag = true;                        // Indicate this
+   
+     if (showsListFiltered) {
+          reverseChanges() // Reverse all the Changes Made
+          showAllEntries();
+     }     
 
+     showsSearchText = ""; // ensure BOTH blank
+     showsSearchBar.value = "";
+     showsSearchBar.style.marginTop = "4em"; // Align the Show Search Bar when instructions are being shown
+     showsSearchBar.focus(); // Set focus here
 }
 
 function hideViews() {
@@ -245,12 +268,14 @@ function hideViews() {
      showsList[0].style.display = "none";
      // Hide the Episodes List view
      episodesDisplay[0].style.display = "none";     
+     // Hide the Show Search Bar
+     showsSearchOption[0].style.display = "none";
      sleep(100); // 0.1 seconds delay
 }
 
 function populateShowMenu() {
 
-     for (let i=0;i<allShows.length;i++) {
+     for (let i = 0;i < allShows.length; i++) {
               let option = document.createElement('option');
               option.value =  i // allShows[i].id; // EG id: 82 for 'Game of Thrones'
               option.text = allShows[i].name; // EG 'Game of Thrones'
@@ -258,7 +283,7 @@ function populateShowMenu() {
                                          };  
 }
 
-function showAll(setup_options) {
+function showAllEpisodes(setup_options) {
        for (let i = 0; i < allEpisodes.length; i++)
        {
               createAllEpisodes(i);
@@ -279,7 +304,7 @@ let rect = findPos(elem);
 console.log("x: "+ rect[0]+window.scrollX);
 console.log("y: "+ rect[1]+window.scrollY);
 
-elem.style.left = (Number(94)) + "px";
+elem.style.left = (Number(94)) + "px"; // ++
 }
 
 function findPos(obj) {
@@ -365,7 +390,7 @@ function episodesSearchFunction(useThisValue) {
    removeChildren(mainDisplayDiv); // remove previous display
    if (!episodesSearchText) // empty input - show all episodes
    {
-         showAll(false);
+         showAllEpisodes(false);
          return;
    };
   
@@ -389,12 +414,15 @@ function episodesSearchFunction(useThisValue) {
 function showsSearchFunction(useThisValue) {
  
    showsSearchText = showsSearchBar.value.trim(); // this is the keyed-in value as the user types
+  
+    if (showsListFiltered) {
+          reverseChanges() // Reverse all the Changes Made
+          showAllEntries();
+    }
 
-   // showAllShows() // Do this to begin with //++
-   //removeChildren(mainDisplayDiv); // remove previous display
-   
    if (!showsSearchText) // empty input - all shows shown
    {
+         showsSearchBar.value = ""; // ensure blank
          return;
    };
   
@@ -402,27 +430,38 @@ function showsSearchFunction(useThisValue) {
 
    // filter out matching shows
    performFilter(lowerCase);
-return
-   // filter out matching shows
-   const searchResults = allshows.filter(element => element.name.toLowerCase().includes(lowerCase) ||
-                                                       element.summary.toLowerCase().includes(lowerCase));
-   
-   if (!searchResults.length) // No match so ignore
-            return;
+   return
+}
 
-  for (let i = 0; i < searchResults.length; i++)
-         displaySearchResults(i,searchResults[i],lowerCase);
+function fetch_N_ID(index) {
+        let theIndex = String(index);
+        if (theIndex in rememberIdLoc)
+               return rememberIdLoc[theIndex];
 
-  // Display the number of shows found       
-  displayMessage[0].innerText = `Displaying ${searchResults.length}/${allshowsTotal} episodes.`;
+        rememberIdLoc[theIndex] = document.getElementById("N" + theIndex);
+        return rememberIdLoc[theIndex];
 }
 
 function hideShow(index) {
-    let theEntry = document.getElementById("N" + index); // Each entry as an ID of the form Nnnn
+    let theEntry = fetch_N_ID(index); // Each entry as an ID of the form Nnnn
     theEntry.style.display = "none";
+    showsListFiltered = true; // Indicate changes made
 }
 
+function unHideShow(index) {
+    let theEntry = fetch_N_ID(index); // Each entry as an ID of the form Nnnn
+    if (theEntry.style.display === "none")
+          theEntry.style.display = "flex"; // Note: each entry is a flexbox
+}
+
+function showAllEntries() {
+      showsListFiltered = false; // Filter removed
+      allShows.forEach( (element, index) => unHideShow(index) );     
+}
+
+
 /*
+    Filter out all matching shows :-
     The Algorithm Used:
     Begin with the full display of ALL the Shows
     Then for each entry
@@ -433,56 +472,49 @@ function hideShow(index) {
     In the end, all that should be displayed are the Show Entries that smatch 'searchText'
 */
 function performFilter(searchText) {
-    filterChanges = [];
-    let nameChanges = []; // ++
-    let showChanges = [];
-  
+           
+    filterChanges = {}; // reset
 
-   
     allShows.forEach( (element, index, theArray) => {
             if (! (element.name.toLowerCase().includes(searchText) || element.summary.toLowerCase().includes(searchText) ||
-                                                                      element.genres.toLowerCase().includes(searchText)) ) {
+                                                                      fetchGenres(index).toLowerCase().includes(searchText)) ) {
                           hideShow(index);     
                           return;                                        
                                                                      }
 
-            let theId = "N" + index; // #id of the form Nnnn
-            let theEntry = document.getElementById("N" + index); // Each entry as an ID of the form Nnnn                                                                     
-            processHTML(theId,theEntry,searchText,element,filterChanges,index)
-    }
-      
-          
+            let theId = "N" + index; // Each entry as an ID of the form Nnnn
+            processHTML(theId,searchText,element,filterChanges,index)
+            return
+                                                    }
     );
-
 }
 
   /*
-  Convert each character of a string so that it can be used in a regex without it having any special meaning
-  For example, . has a special meaning in regular expressions however instead of using \. use \u002E instead
-  Likewise \n would be interpreted as CARRIAGE RETURN so use \u000D INSTEAD
-  \d, \D, \f, \n, \r, \s, \S, \t, \v, \w, \W, \0 
-  ALL HAVE SPECIAL MEANINGS IN JAVASCRIPT REGULAR EXPRESSIONS
+  Convert each non alphanumeric character of a string so that it can be used in a regex without it having any special meaning
+  For example, . has a special meaning in regular expressions so instead of using \. use \u002E instead
+  Likewise ()^$? ETC - all REGEX METACHARACTERS so use the for \uHHHH instead
+
   \uhhhh	Matches a UTF-16 code-unit with the value hhhh (four hexadecimal digits).
   */
 
   function convertEachChar(string) {
-            return string.split().map(c => `\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`).join("")
+            return string.split("").map(c => /[A-Za-z0-9]/.test(c) ? c : `\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`)
+                                                          .join("")
   }
 
-  function processHTML(theId,theEntry,searchText,element,changes,index) {
+  function processHTML(theId,searchText,element,changes,index) {
 /*
     Remove any possibility of the searchText being part of a HTML tag
     e.g. if the user types 'p' it ought NOT to match <p></p>
 
-    Javascript does not support regex lookbehind assertions so what follows isc
+    JavaScript does not support regex lookbehind assertions so what follows isc
     a convoluted workaround using regex - you have been warned :)
 
     REGEX: <[^>]*(SEARCHTEXT).*?>
 */
 
   let localChanges = [];
-  const SUMMARY = 0, NAME = 1, GENRES = 2; // ++
-  let tagCount,textCount,newHTML,theText; // ++ textCount
+  let tagCount,newHTML,theText;
 
   // NESTED FUNCTIONS for Scoping reasons
 
@@ -496,7 +528,6 @@ function performFilter(searchText) {
 
           // Record the match in order to restore it later
            localChanges[tagCount] = match;
-           console.log(tagCount,match)
          
            return `<${tagCount}>`;          
       }
@@ -504,16 +535,16 @@ function performFilter(searchText) {
       function putChangesBack() {
       // <number> - number being 1 to tagCount, note: zero is EMPTY
       // LIFO order
-         for (let i=tagCount; i>0; --i) {
-                 console.log(`<${i}>`, localChanges[i]);
-            }
-      for (let i=tagCount; i>0; --i) {
+      for (let i = tagCount; i > 0; --i) {
                  newHTML = newHTML.replace(`<${i}>`, localChanges[i])
             }
       }
 
+
+      // ******* function  processHTML() starts here *******
+
       let regex = new RegExp("<[^>]*" + convertEachChar(searchText) + ".*?>","gi"); //  REGEX: <[^>]*(SEARCHTEXT).*?> 
-      // EG for 'p' ==> REGEX: <[^>]*\u0070.*?>
+      // EG for '<p>' ==> REGEX: <[^>]*\u0070.*?>
    
       theIndex = String(index); // convert number to a string for usage in an Object
 
@@ -521,38 +552,37 @@ function performFilter(searchText) {
       theText = element.summary;
       if (theText.toLowerCase().includes(searchText))
       {
-        console.log(theText)
                 newHTML = theText.replace(regex,replaceTags);
-                console.log(newHTML)
-                if (newHTML.includes(searchText)) // searchText Definitely exists in the text - amend the HTML
+                
+                if (newHTML.toLowerCase().includes(searchText)) // searchText Definitely exists in the text - amend the HTML
                 {
                     // Keep a record of the original text to restore later
                     if (!(theIndex in changes)) 
                               changes[theIndex] = {}; 
-                    }
+                    
                     changes[theIndex].summary = theText;
-                    console.log(searchText)
-                    console.log(convertEachChar(searchText))
+
                     // Convert 'plain text' into REGEX before matching 
                     regex = new RegExp(convertEachChar(searchText),"gi"); // global, case-insensitive 
-                    //newHTML = theText.replace(regex,"<span class='blueText'>" + searchText + "</span>"); // ++
 
                     // $&	Inserts the matched substring.
-                    newHTML = newHTML.replace(regex,"<span class='blueText'>$&</span>");
                     
-                    // EG each e<span class='blueText'>p</span>isode 
+                    newHTML = newHTML.replace(regex,"<span class='colouredtext'>$&</span>");
+                    showsListFiltered = true; // Indicate changes made
+                    
+                    
+                    // EG each e<span class='colouredtext'>p</span>isode 
                     // IE each episode
-                    console.log(newHTML)
 
                     if (tagCount) 
-                          putChangesBack();
+                          putChangesBack(); // restore the HTML tags
 
                     let findElement = document.querySelector("#" + theId + " .show-summary"); // SPACE:  descendant combinator EG #N0 .show-summary
+
                     findElement = findElement.firstChild.firstChild;
                     changes[theIndex].summaryNode = findElement;
-                    console.log(changes)
-                    console.log(findElement)
-                    findElement.innerHTML = newHTML;                   
+                    findElement.innerHTML = newHTML;       
+                }                  
       }
 
  
@@ -566,109 +596,126 @@ function performFilter(searchText) {
                 changes[theIndex].name = theText;
                 // Convert 'plain text' into REGEX before matching 
                 let regex = new RegExp(convertEachChar(searchText),"gi"); // global, case-insensitive 
-                // EG for '2' ==> \u0032 ==> <span class='blueText'>2</span>
-                console.log(regex)
+                // EG for '2' ==> \u0032 ==> <span class='colouredtext'>2</span>
 
                 // $&	Inserts the matched substring.
-                newHTML = theText.replace(regex,"<span class='blueText'>$&</span>");
-
-                console.log(newHTML)
+                newHTML = theText.replace(regex,"<span class='colouredtext'>$&</span>");
+                showsListFiltered = true // Indicate changes made
 
                 let findElement = document.querySelector("#" + theId + " .list-show-name"); // SPACE:  descendant combinator EG #N0 .list-show-name
                 changes[theIndex].nameNode = findElement;
-                    console.log(changes)
-                    console.log(findElement)
-                    findElement.innerHTML = newHTML;
-          throw ("ebd")
-                    
-  
+                findElement.innerHTML = newHTML;                  
       }
 
-  
-      theText = element.genres;
-      if (theText.toLowerCase().includes(searchText)) // searchText Definitely exists in the text - amend the HTML
+      tagCount = 0;
+      // BUG FIX 
+      theText = allShows[index].genres; // the genres string hs been computed earlier and is kept in the allShows array 
+      if (typeof theText != "string")
       {
+           theText = theText[0]
+      }
+
+      theText = fetchGenres(index); 
+      if (theText.toLowerCase().includes(searchText))
+      {
+
+ /* NEED TO HANDLE THE FOLLOWING TYPE OF HTML:
+    <strong>Genres: </strong><p>Action | Drama | Supernatural</p>
+    So firstly, locate the relevant string and fetch from the DOM
+*/
+
+         let k;
+         // find the GENRES Child Node
+         let findElement = document.querySelector("#" + theId + " .summary-flex-container");
+
+         let children = findElement.children;
+                
+         let found = false;
+
+         for (k = 0; k < children.length; k++) {
+              // Search for Genres
+              if (children[k].innerText.startsWith("Genres"))
+              {
+                    found = true;                                                  
+                    break
+              }
+         }
+
+         if (!found) // doubtful but just in case!
+             return;
+
+         // the actual HTML of the Genres entry e.g.
+         // <strong>Genres: </strong><p>Action | Drama | Supernatural</p>
+         theText = children[k].innerHTML;
+
+         let regex = new RegExp("<[^>]*" + convertEachChar(searchText) + ".*?>","gi"); //  REGEX: <[^>]*(SEARCHTEXT).*?> 
+         // EG for '<p>' ==> REGEX: <[^>]*\u0070.*?>
+
+         newHTML = theText.replace(regex,replaceTags);
+          
+         if (newHTML.toLowerCase().includes(searchText)) // searchText Definitely exists in the text - amend the HTML
+         {
+
                 // Keep a record of the original text to restore later
                 if (!(theIndex in changes)) 
                               changes[theIndex] = {}; 
-                              console.log(theText)
-                              
                 
                 changes[theIndex].genres = theText;
-                // Convert 'plain text' into REGEX before matching 
+                changes[theIndex].genresNode = children[k];
 
-                let regex = new RegExp(convertEachChar(searchText),"gi"); // global, case-insensitive
+                // Convert 'plain text' into REGEX before matching 
+                regex = new RegExp(convertEachChar(searchText),"gi"); // global, case-insensitive
 
                 // $&	Inserts the matched substring.
-                newHTML = theText.replace(regex,"<span class='blueText'>$&</span>");
+                newHTML = newHTML.replace(regex,"<span class='colouredtext'>$&</span>");
+                showsListFiltered = true // Indicate changes made
 
-                console.log(newHTML)
-                //console.log(newHTML,searchText,100,theText,200,theText.replaceAll(searchText,"<span class='blueText'>" + searchText + "</span>")) //++
-                // SPACE:  descendant combinator EG #N0 .summary-flex-container
+                if (tagCount) 
+                        putChangesBack(); // restore the HTML tags
 
-                // find the GENRES Child Node
-                let findElement = document.querySelector("#" + theId + " .summary-flex-container");
+                // EG innerHTML: "Action | <span class=\"colouredtext\">D</span>rama | Thriller"
+                // IE Action | Drama | Thriller
+                children[k].innerHTML = newHTML;
+          }    
+      }     
+ }
 
-                let children = findElement.children;
-                console.log(children);
-                
-                for (let i = 0; i < children.length; i++) {
-                  // Search for Genres
-                       if (children[i].innerText.startsWith("Genres"))
-                       {
-                         console.log(children[i].innerText)
-                         console.log(children[i].tagName);
-                         console.log(children[i].nodeName)
-                         console.log(children[i].innerHTML, newHTML)
-                         changes[theIndex].genresNode = children[i];
-                    console.log(changes)
+// the genres string hs been computed earlier and is kept in the allShows array 
+function fetchGenres(index) {
 
-                         children[i].innerHTML = newHTML;
-                         // EG innerHTML: "Action | <span class=\"blueText\">D</span>rama | Thriller"
-                         // IE Action | Drama | Thriller
-                         throw 14
-                         break
-                       }
-  console.log(children[i].tagName);
-    console.log(children[i].nodeName)
-  console.log(children[i].nodeName.firstChild)
+      let genres = allShows[index].genres; // the genres string hs been computed earlier and is kept in the allShows array 
+
+      /*** 
+       * NOTE: THIS IS A WORKAROUND BECAUSE OF AN OBSCURE BUG WHICH I CANNOT FIGURE OUT
+       * SOMEWHERE, SOMEHOW, allShows[index].genres IS CHANGED FROM A STRING TO AN ARRAY!!
+      ***/
+
+      if (typeof genres !== "string")
+      {
+           return genres[0];
+      }
+
+      else
+           return genres;
+} 
+
+function reverseChanges() { // Reverse all the Changes Made
+       showsListFiltered = false;
+       for (index in filterChanges)
+       {
+           if ("summary" in filterChanges[index]) {
+                  filterChanges[index].summaryNode.innerHTML = filterChanges[index].summary;
+           }
+           
+           if ("name" in filterChanges[index]) {
+                  filterChanges[index].nameNode.innerText = filterChanges[index].name;
+           }
+
+           if ("genres" in filterChanges[index]) {
+                  filterChanges[index].genresNode.innerHTML = filterChanges[index].genres;
+           }
+       }
 }
-throw 12
-                console.log(findElement[0]) 
-                console.log(findElement[3]) 
-                console.log(findElement[4]) 
-                console.log(findElement[5]) 
-                console.log(findElement[6])
-throw 12
-                findElement = findElement.children;
-                console.log(findElement)
-                console.log(findElement[0]) 
-                console.log(findElement[3]) 
-                console.log(findElement[4]) 
-                console.log(findElement[5]) 
-                console.log(findElement[6])
-                findElement[4].firstChild.innerHTML = newHTML;
-                console.log(findElement[4]) 
-                throw 12 
-                    console.log(changes)
-                    console.log(findElement)
-                    console.log(newHTML)
-                    // let el = findElement.find(':nth-child(' + '5' + ')');
-                    console.log(el.innerHTML)
-                    console.log(el)
-                    throw 12
-                  children = findElement.children;
-                    findElement = document.querySelector(".summary-flex-container: nth-child(6)"); 
-                     console.log(findElement.innerHTML)
-                    findElement.innerHTML = newHTML;
-                    console.log(findElement.innerHTML)
-          throw ("ebd")
-
-              }
-            }     
-
-
-
 
 // remove HTML nodes
 function removeChildren(node) {
@@ -740,7 +787,7 @@ function processText(text,lowerCase,extraText,result) {
             lowerText = lowerText.substr(p+len);
             paragraph = document.createElement("span");
             paragraph.innerText=aString;
-            paragraph.classList.add('blueText');
+            paragraph.classList.add('colouredtext');
             result.appendChild(paragraph); // add to element
               }     
 
@@ -765,7 +812,7 @@ function jumpToEpisode(event) {
        episodesSearchText = "";
        episodesSearchBar.value = "";
        removeChildren(mainDisplayDiv); // remove previous display
-       showAll(false); // show all episodes
+       showAllEpisodes(false); // show all episodes
     }
 
 /*
@@ -818,6 +865,8 @@ function selectShow(event) {
 }
 
 function shows_list_setup() {
+
+     let offset = 0; 
   // Hide the Episodes List view
      episodesDisplay[0].style.display = "none";
 
@@ -832,15 +881,21 @@ function shows_list_setup() {
   // Populate the Shows List
      allShows.forEach((element,index) => {
                              globalCount++;
-                             let ok = createShowEntry(element,index);
+                             let ok = createShowEntry(element,index + offset);
                              if (!ok) {
                                          // Erroneous entry - record index
                                          errorArray.push(index);
+
+     // If an entry is going to be removed, add offset to the current index i.e.
+     // if entry 51 is going to be deleted, ensure that the next entry wll be given the index of 51
+     // 1) by subtracting one from 'offset' = -1
+     // 2) then add that to the current value of 'index'; so that index 52 + -1 = 51
+                                         --offset;    
                                       }
                                           });
 
      if (errorArray.length > 0)
-     {  
+     {
         // remove any erroneous entries from allShows
         while (errorArray.length > 0)
         {
@@ -849,6 +904,7 @@ function shows_list_setup() {
         };
 
         allShowsTotal = allShows.length;
+
         if (allShowsTotal === 0) // very doubtful
         {
                     alert("Catastrophic error has occurred - no shows were loaded. The shows source appears empty.");
@@ -1002,6 +1058,28 @@ function createShowEntry(element, index) {
           paragraph2 = document.createElement("p");
           // New field 'genres' added to allShows so that Search can be done by 'genre'
           paragraph2.innerText = allShows[index].genres = genresArray.join(" | ");
+
+          if (typeof allShows[index].genres !== "string") // ++
+          {
+            alert(index)
+            alert(allShows[index].genres)
+          }
+
+          if (typeof genresArray.join(" | ") !== "string")
+          {
+            alert("G"+index)
+            alert(allShows[index].genres)
+            alert(genresArray.join(" | "))
+          }
+
+          if (index === 299)
+          {
+            console.log(genresArray)
+            console.log(paragraph2)
+            console.log(allShows[index].genres, typeof allShows[index].genres)
+            
+          }
+
           paragraph.append(paragraph2);
           addInfoDiv.append(paragraph); 
 
@@ -1045,8 +1123,9 @@ function createShowEntry(element, index) {
           showEntryDiv.append(figure);
           showEntryDiv.append(header);
           showEntryDiv.append(theDiv1);
-          if (globalCount > 1) // All but the top one, remove the top border
-                  showEntryDiv.style.borderTop = "none";
+
+//          if (globalCount > 1) // All but the top one, remove the top border
+//                  showEntryDiv.style.borderTop = "none";
 
           // Append the new Show Entry
           showsList[0].append(showEntryDiv);
