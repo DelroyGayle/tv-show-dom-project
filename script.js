@@ -228,6 +228,9 @@ function episodes_setup() {
 
     showName[0].innerText = allShows[showNumber].name; // Display the name of the show
     episodesSearchBar.focus(); // Set focus here
+    // However scroll to the top of the page
+     document.body.scrollTop = 0; // For Safari
+     document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
 }
 
 function footer_setup() {
@@ -490,7 +493,7 @@ function hideShow(index) {
 function unHideShow(index) {
     let theEntry = fetch_N_ID(index); // Each entry as an ID of the form Nnnn
     if (theEntry.style.display === "none")
-          theEntry.style.display = "flex"; // Note: each entry is a flexbox
+          theEntry.style.display = "grid"; // Note: each entry is a CSS Grid
 }
 
 function showAllEntries() {
@@ -660,16 +663,25 @@ function performFilter(searchText) {
 
          let k;
          // find the GENRES Child Node
-         let findElement = document.querySelector("#" + theId + " .summary-flex-container");
+         let findElement = document.querySelector("#" + theId + " .theshow-genres");
 
          let children = findElement.children;
                 
          let found = false;
 
+ /*        
+   Search for Genres
+   The Genres string is located in the sibling that follows the <strong>Genres: </strong>
+   EG
+   PARENT: <p class="theshow-genres"><
+                  <strong>Genres: </strong>
+                  <span>Action | Drama | Thriller</span></p>
+ */
+
          for (k = 0; k < children.length; k++) {
               // Search for Genres
               if (children[k].innerText.startsWith("Genres"))
-              {
+              {     ++k // k incremented to point to the Genres
                     found = true;                                                  
                     break
               }
@@ -945,18 +957,18 @@ function shows_list_setup() {
 
 /* Create for example:
 
-      <div class="show-entry">
-        <figure>
-          <img
-            class="show-image"
-            id="IM1"
-            src="http://static.tvmaze.com/uploads/images/medium_portrait/190/476117.jpg"
-          />
-        </figure>
-        <div class="show-info">
+  <div class="show-entry">
+      <div class="first-column">
+          <figure>
+            <img
+              class="show-image"
+              id="IM1"
+              src="http://static.tvmaze.com/uploads/images/medium_portrait/190/476117.jpg"
+            />
+          </figure>
           <h2 class="list-show-name" id="M1">Game of Thrones</h2>
-
-          <div class="show-summary">
+      </div>
+      <div class="show-summary">
             <p>Here is some text</p>
             <p>
               Pellentesque habitant morbi tristique senectus et netus et
@@ -969,22 +981,22 @@ function shows_list_setup() {
               condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac
               dui.
             </p>
-          </div>
-          <div class="summary-flex-container">
-            <p class="item">Official Website: movies.com</p>
-            <p class="item">Premiered: 22nd February 1990</p>
-            <p class="item">Rated: 8.5</p>
-            <hr>
-            <p class="item">Genres: abc | def | high</p>
-            <p class="item">Status: running</p>
-            <p class="item">Runtime: 60 minutes</p>
-          </div>
-        </div>
       </div>
+      <p class="theshow-website">Official Website: movies.com</p>
+      <p class="theshow-premiered">Premiered: 22nd February 1990</p>
+      <p class="theshow-rated">Rated: 8.5</p>
+      <p class="theshow-genres">Genres: abc | def | high</p>
+      <p class="theshow-status">Status: running</p>
+      <p class="theshow-runtime">Runtime: 60 minutes</p>        
+    </div>
+
 */
 
 function createShowEntry(element, index) {
           
+          let theDiv0 = document.createElement("div");
+          theDiv0.setAttribute("class", "first-column");
+
           let img = document.createElement("img"); // SHOW IMAGE
           img.setAttribute("class", "show-image");
           img.setAttribute("id","IM" + element.id); // I.E. the 'id' for this image will be called for example, for Game of Thrones, IM82
@@ -999,79 +1011,69 @@ function createShowEntry(element, index) {
           img.addEventListener("click", getEpisodesPage); // Add a CLICK Listener
 
           const figure = document.createElement("figure");
-          figure.append(img);  
+          figure.append(img);
+
+          theDiv0.append(figure);  
 
           let header = document.createElement("h2"); // SHOWNAME
           header.setAttribute("class", "list-show-name");
           header.setAttribute("id","M" + element.id); // I.E. the 'id' for the Show Name will be called for example, for Game of Thrones, M82
           header.innerHTML = element.name;
-          header.addEventListener("click", getEpisodesPage); // Add a CLICK Listener
+          header.addEventListener("click", getEpisodesPage); // Add a CLICK Listener          
 
-          let theDiv1 = document.createElement("div");
-          theDiv1.setAttribute("class", "show-info");
-          theDiv1.append(header);
+          theDiv0.append(header);  
 
           let paragraph = document.createElement("p"); // SHOW SUMMARY
           paragraph.innerHTML = element.summary;
 
-          let theDiv2 = document.createElement("div");
-          theDiv2.setAttribute("class", "show-summary");
-          theDiv2.append(paragraph);          
+          let theDiv1 = document.createElement("div");
+          theDiv1.setAttribute("class", "show-summary");
+          theDiv1.append(paragraph);          
 
-          let addInfoDiv = document.createElement("div"); // ADDITIONAL: Website/Premiered/Rated/Genres/Status/Runtime
-          addInfoDiv.setAttribute("class", "summary-flex-container");
-
-          paragraph = document.createElement("p"); // OFFICIAL WEBSITE
+          let website_paragraph = document.createElement("p"); // OFFICIAL WEBSITE
+          website_paragraph.setAttribute("class", "theshow-website");
           let boldText = document.createElement("strong");
           boldText.innerText = "Official Website: "
-          paragraph.append(boldText)
+          website_paragraph.append(boldText)
 
           if (element.officialSite)
           {
               let theLink = create_link(element.officialSite,element.officialSite);
-              paragraph.append(theLink);
+              website_paragraph.append(theLink);
           }
-          addInfoDiv.append(paragraph);  
 
-          paragraph = document.createElement("p"); // PREMIERED
-          paragraph.setAttribute("class", "item");
+          let premiered_paragraph = document.createElement("p"); // PREMIERED
+          premiered_paragraph.setAttribute("class", "theshow-premiered");
           boldText = document.createElement("strong");
           boldText.innerText = "Premiered: "
-          paragraph.append(boldText)
+          premiered_paragraph.append(boldText)
 
-          let paragraph2 = document.createElement("p");
+          let paragraph2 = document.createElement("span");
           if (element.premiered)
           {
               let theDate = convertFromYYYYMMDD(element.premiered)
               paragraph2.innerText = theDate;
-              paragraph.append(paragraph2);
+              premiered_paragraph.append(paragraph2);
           }
-          addInfoDiv.append(paragraph);  
 
-          paragraph = document.createElement("p"); // RATED
-          paragraph.setAttribute("class", "item");
+          let rated_paragraph = document.createElement("p"); // RATED
+          rated_paragraph.setAttribute("class", "theshow-rated");
           boldText = document.createElement("strong");
           boldText.innerText = "Rated: "
-          paragraph.append(boldText)
+          rated_paragraph.append(boldText)
 
-          paragraph2 = document.createElement("p");
+          paragraph2 = document.createElement("span");
           if (element.rating.average)
           {
               paragraph2.innerText = String(element.rating.average);
-              paragraph.append(paragraph2);
+              rated_paragraph.append(paragraph2);
           }
-          addInfoDiv.append(paragraph);  
 
-          // FORCE A LINE BREAK USING <hr> - SEE https://stackoverflow.com/questions/29732575/how-to-specify-line-breaks-in-a-multi-line-flexbox-layout 
-
-          let hr = document.createElement("hr");
-          addInfoDiv.append(hr);
-
-          paragraph = document.createElement("p"); // GENRES
-          paragraph.setAttribute("class", "item");
+          let genres_paragraph = document.createElement("p"); // GENRES
+          genres_paragraph.setAttribute("class", "theshow-genres");
           boldText = document.createElement("strong");
           boldText.innerText = "Genres: "
-          paragraph.append(boldText)
+          genres_paragraph.append(boldText)
 
           // If GENRES is null, use TYPE instead
           let genresArray = [];
@@ -1084,43 +1086,37 @@ function createShowEntry(element, index) {
           else if (element.type !== "")
                   genresArray = [element.type];
 
-          paragraph2 = document.createElement("p");
+          paragraph2 = document.createElement("span");
           // New array 'genresTable' incorporated so that Search can be done by 'genre'
           paragraph2.innerText = genresTable[index] = genresArray.join(" | ");
 
-          paragraph.append(paragraph2);
-          addInfoDiv.append(paragraph); 
+          genres_paragraph.append(paragraph2);
 
-          paragraph = document.createElement("p"); // STATUS
-          paragraph.setAttribute("class", "item");
+          let status_paragraph = document.createElement("p"); // STATUS
+          status_paragraph.setAttribute("class", "theshow-status");
           boldText = document.createElement("strong");
           boldText.innerText = "Status: "
-          paragraph.append(boldText)
+          status_paragraph.append(boldText)
 
-          paragraph2 = document.createElement("p");
+          paragraph2 = document.createElement("span");
           if (element.status)
           {
               paragraph2.innerText = element.status;
-              paragraph.append(paragraph2);
+              status_paragraph.append(paragraph2);
           }
-          addInfoDiv.append(paragraph);  
 
-          paragraph = document.createElement("p"); // RUNTIME
-          paragraph.setAttribute("class", "item");
+          let runtime_paragraph = document.createElement("p"); // RUNTIME
+          runtime_paragraph.setAttribute("class", "theshow-runtime");
           boldText = document.createElement("strong");
           boldText.innerText = "Runtime: "
-          paragraph.append(boldText)
+          runtime_paragraph.append(boldText)
 
-          paragraph2 = document.createElement("p");
+          paragraph2 = document.createElement("span");
           if (element.runtime)
           {
               paragraph2.innerText = `${element.runtime} minutes`;
-              paragraph.append(paragraph2);
+              runtime_paragraph.append(paragraph2);
           }
-          addInfoDiv.append(paragraph);
-
-          theDiv2.append(addInfoDiv);  
-          theDiv1.append(theDiv2);
 
           let showEntryDiv = document.createElement("div");
           showEntryDiv.setAttribute("class", "show-entry");
@@ -1128,9 +1124,14 @@ function createShowEntry(element, index) {
           // The number being the index of the allShows array
           showEntryDiv.setAttribute("id","N" + index); 
 
-          showEntryDiv.append(figure);
-          showEntryDiv.append(header);
+          showEntryDiv.append(theDiv0);
           showEntryDiv.append(theDiv1);
+          showEntryDiv.append(website_paragraph);
+          showEntryDiv.append(premiered_paragraph);
+          showEntryDiv.append(rated_paragraph);
+          showEntryDiv.append(genres_paragraph);
+          showEntryDiv.append(status_paragraph);
+          showEntryDiv.append(runtime_paragraph);
 
 //          if (globalCount > 1) // All but the top one, remove the top border
 //                  showEntryDiv.style.borderTop = "none";
