@@ -309,31 +309,7 @@ function showAllEpisodes(setup_options) {
                                 }           
        };
        displayMessage[0].innerText = `Displaying ${allEpisodesTotal}/${allEpisodesTotal} episodes.`;
-       let elem = displayMessage[0]; // xxx // ++
-       elem = document.querySelector('#homebutton');
-       elem = displayMessage[0];
-        elem = document.querySelector('#homebutton');
-let rect = findPos(elem);
-console.log("x: "+ rect[0]+window.scrollX);
-console.log("y: "+ rect[1]+window.scrollY);
-
-elem.style.left = (Number(94)) + "px"; // ++
 }
-
-function findPos(obj) {
-	var curleft = curtop = 0;
-
-  // Every time we find a new object, we add its offsetLeft and offsetTop to curleft and curtop.
-
-	do {
-			curleft += obj.offsetLeft;
-			curtop += obj.offsetTop;
-		} while (obj = obj.offsetParent); //  I use the = assignment operator to change the value of obj to obj.offsetParent.
-
-// Finally, when the while loop has quit, we return an array with the calculated coordinates 
-	return [curleft,curtop];
-}
-
 
 function createAllEpisodes(index) {
     const episodeDiv = document.createElement('div'); // main 'div' to append to
