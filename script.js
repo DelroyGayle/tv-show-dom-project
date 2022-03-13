@@ -984,6 +984,7 @@ function createShowEntry(element, index) {
           }
 
           img.src = element.image.medium;
+          img.style.cursor = "pointer";
           img.addEventListener("click", getEpisodesPage); // Add a CLICK Listener
 
           const figure = document.createElement("figure");
@@ -995,9 +996,10 @@ function createShowEntry(element, index) {
           header.setAttribute("class", "list-show-name");
           header.setAttribute("id","M" + element.id); // I.E. the 'id' for the Show Name will be called for example, for Game of Thrones, M82
           header.innerHTML = element.name;
+          header.style.cursor = "pointer";
           header.addEventListener("click", getEpisodesPage); // Add a CLICK Listener          
 
-          theDiv0.append(header);  
+          theDiv0.append(header);
 
           let paragraph = document.createElement("p"); // SHOW SUMMARY
           paragraph.innerHTML = element.summary;
