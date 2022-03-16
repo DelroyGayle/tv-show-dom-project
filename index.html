@@ -31,6 +31,7 @@
       <div class="shows-searchbar">
         <input
           type="text"
+          autocomplete="off"
           id="shows-query"
           name="q"
           placeholder="Shows Listing Search"
@@ -54,16 +55,17 @@
       <div>
         <p class="display-message"></p>
       </div>
-      <div class="display-info">
+      <div class="select-and-search">
         <!-- Dropdown menus -->
         <!-- Show Selector-->
         <select name="show-select-menu" id="show-select-menu"></select>
         <!-- Episode Selector-->
         <select name="episode-select-menu" id="episode-select-menu"></select>
         <!-- Episodes Search -->
-        <div>
+        <div class="movie-query-div">
           <input
             type="text"
+            autocomplete="off"
             id="movie-query"
             name="q"
             placeholder="Movies & Episodes Search"

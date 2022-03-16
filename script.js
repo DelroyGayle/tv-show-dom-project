@@ -313,6 +313,7 @@ function showAllEpisodes(setup_options) {
 
 function createAllEpisodes(index) {
     const episodeDiv = document.createElement('div'); // main 'div' to append to
+    episodeDiv.classList.add('episode-flex');
     const source = allEpisodes[index]; // Entire Episode Entry
 
     episodeDiv.setAttribute("id",fetchEpisodeSeason_Suffix(source)); // I.E. the 'id' will be called S01E01
@@ -538,7 +539,7 @@ function performFilter(searchText) {
 
       function replaceTags(match) {
 
- // EG 'p' Matches <img class="show-image" id="IM167" src="http://static.tvmaze.com/uploads/images/medium_portrait/0/2330.jpg">
+ // EG 'p' Matches <img class="style-image" id="IM167" src="http://static.tvmaze.com/uploads/images/medium_portrait/0/2330.jpg">
  // as well as <p class="item"> <p> </p> ETC 
 
            ++tagCount; // Indicate that a change is about to be made
@@ -937,7 +938,7 @@ function shows_list_setup() {
       <div class="first-column">
           <figure>
             <img
-              class="show-image"
+              class="style-image"
               id="IM1"
               src="http://static.tvmaze.com/uploads/images/medium_portrait/190/476117.jpg"
             />
@@ -971,10 +972,10 @@ function shows_list_setup() {
 function createShowEntry(element, index) {
           
           let theDiv0 = document.createElement("div");
-          theDiv0.setAttribute("class", "first-column");
+          theDiv0.setAttribute("class", "theshow-image");
 
           let img = document.createElement("img"); // SHOW IMAGE
-          img.setAttribute("class", "show-image");
+          img.setAttribute("class", "style-image");
           img.setAttribute("id","IM" + element.id); // I.E. the 'id' for this image will be called for example, for Game of Thrones, IM82
           // Discovered for example - Show: "Cosmos", ID:1127 has no image!!
           if (!element.image) {
@@ -992,6 +993,8 @@ function createShowEntry(element, index) {
 
           theDiv0.append(figure);  
 
+          let theDiv2 = document.createElement("div");
+          theDiv2.setAttribute("class", "theshow-title");
           let header = document.createElement("h2"); // SHOWNAME
           header.setAttribute("class", "list-show-name");
           header.setAttribute("id","M" + element.id); // I.E. the 'id' for the Show Name will be called for example, for Game of Thrones, M82
@@ -999,7 +1002,7 @@ function createShowEntry(element, index) {
           header.style.cursor = "pointer";
           header.addEventListener("click", getEpisodesPage); // Add a CLICK Listener          
 
-          theDiv0.append(header);
+          theDiv2.append(header);
 
           let paragraph = document.createElement("p"); // SHOW SUMMARY
           paragraph.innerHTML = element.summary;
@@ -1103,13 +1106,19 @@ function createShowEntry(element, index) {
           showEntryDiv.setAttribute("id","N" + index); 
 
           showEntryDiv.append(theDiv0);
+          showEntryDiv.append(theDiv2);
           showEntryDiv.append(theDiv1);
           showEntryDiv.append(website_paragraph);
-          showEntryDiv.append(premiered_paragraph);
-          showEntryDiv.append(rated_paragraph);
           showEntryDiv.append(genres_paragraph);
-          showEntryDiv.append(status_paragraph);
-          showEntryDiv.append(runtime_paragraph);
+
+          let flexDiv1 = document.createElement("div");
+          flexDiv1.setAttribute("class", "flex-container-in-grid");         
+          flexDiv1.append(premiered_paragraph);
+          flexDiv1.append(rated_paragraph);
+
+          flexDiv1.append(status_paragraph);
+          flexDiv1.append(runtime_paragraph);
+          showEntryDiv.append(flexDiv1);
 
 //          if (globalCount > 1) // All but the top one, remove the top border
 //                  showEntryDiv.style.borderTop = "none";

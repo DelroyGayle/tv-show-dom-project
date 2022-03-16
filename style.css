@@ -8,6 +8,13 @@
   --indigo: #490990;
   --redtext: #d84141;
   --antiquewhite: rgb(250, 235, 215);
+  --space-top: 1em;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .mainHeading {
@@ -53,6 +60,18 @@ body {
   display: flex;
 }
 
+.flex-container-in-grid {
+  grid-area: flex;
+  display: flex;
+  flex-flow: row wrap;
+  align-content: space-between;
+  justify-content: space-between;
+}
+
+.flex-container-in-grid :nth-child(1n) {
+  width: 50%;
+}
+
 .box {
   display: flex;
   flex: 1;
@@ -74,24 +93,36 @@ body {
 
 /* Regards Episode Display */
 
-.display-info {
+.select-and-search {
   font-size: 1.4em;
   margin: 4em 0em;
   display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-}
-
-#episode-select-menu {
-  font-size: 1em;
+  /* justify-content: space-evenly; */
+  justify-content: space-around;
+  /* padding: 3em; */
+  /* align-items: flex-start; */
+  /* padding-right: 3em; */
 }
 
 #show-select-menu {
   font-size: 1em;
+  margin-left: 1.5em;
+}
+
+#episode-select-menu {
+  font-size: 1em;
+  margin-left: 1.5em;
+  margin-right: 3.8em;
+  /* max-width: 21.813em; */
+}
+
+.movie-query-div {
+  padding-right: 4em;
 }
 
 #movie-query {
   font-size: 1em;
+  padding-right: 2em;
 }
 
 /* Regards Shows List Display */
@@ -160,6 +191,12 @@ body {
   overflow-y: auto;
 }
 
+.episode-flex {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+}
 .episode-title {
   font-size: 1.75em; /* 28px; */
 }
@@ -202,14 +239,40 @@ body {
 
 .show-entry {
   display: grid;
-  grid-template-columns: minmax(min-content, 400px), auto;
-  grid-template-rows: min-content;
+  /*grid-template-columns: minmax(min-content, 400px), auto;*/
+  grid-template-columns: minmax(0, 210px) auto calc(50% - 50px);
+  /* grid-template-rows: 210px min-content; */
+  grid-template-rows: max-content;
   grid-template-areas:
+  /*
     "col1 summary summary summary "
     "col1 summary summary summary "
     "col1 website premiered rated "
     "col1 genres status runtime ";
-  /* align-items: start; */
+    
+    "image summary summary summary "
+    "image summary summary summary "
+    "image website ...... genres "
+    "image premiered ...... status "
+    "image rated ...... runtime"
+    "title title title title";
+
+    "image summary summary summary  summary"
+    "image summary summary summary  summary"
+    "image website website website website"
+    "image genres genres genres genres"
+    "image premiered premiered premiered ......"
+    "image rated  ...... runtime ......"
+    "title title title title title";
+*/
+    "image summary summary summary  summary"
+    "image summary summary summary  summary"
+    "image website website website website"
+    "image genres genres genres genres"
+    "image flex flex flex flex"
+    "image flex flex flex flex"
+    "title title title title title";
+
   column-gap: 2em;
   row-gap: 0em;
   border: 0.125em solid var(--twitter-blue);
@@ -220,43 +283,71 @@ body {
   padding-left: 3em;
 }
 
+.theshow-image {
+  grid-area: image;
+  padding-left: 3em;
+  padding-top: var(--space-top);
+  max-width: 210px;
+  max-height: 300px;
+}
+
+.title {
+  grid-area: title;
+  padding-left: 3em;
+}
+
 .list-show-name {
   font-family: "Arial Bold";
   font-size: 2em;
-  text-align: center;
+  text-align: left;
+  padding-top: 1em;
+  padding-left: 1.6em;
+  padding-bottom: 1em;
 }
 
 .show-summary {
   grid-area: summary;
+  padding-top: var(--space-top);
   padding-right: 2em;
   font-size: 1.2em;
 }
 
 .theshow-website {
+  padding-top: var(--space-top);
   grid-area: website;
 }
 
 .theshow-premiered {
+  padding-top: var(--space-top);
   grid-area: premiered;
 }
 
 .theshow-rated {
+  padding-top: var(--space-top);
   grid-area: rated;
 }
 
 .theshow-genres {
+  padding-top: var(--space-top);
   grid-area: genres;
 }
 
 .theshow-status {
+  padding-top: var(--space-top);
   grid-area: status;
 }
 
 .theshow-runtime {
+  padding-top: var(--space-top);
   grid-area: runtime;
 }
 
-.show-image {
+.theshow-title {
+  grid-area: title;
+}
+
+.style-image {
   max-width: 100%;
   object-fit: contain;
+  grid-area: image;
 }
