@@ -11,10 +11,18 @@
   --space-top: 1em;
 }
 
+/* Global Reset */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+body {
+  background: #f2f2f2;
+  background-color: var(--antiquewhite); /* Thank you Hatice */
+  font-family: "Open Sans", sans-serif;
 }
 
 .mainHeading {
@@ -25,11 +33,58 @@
   text-decoration: underline;
 }
 
-body {
-  background: #f2f2f2;
-  background-color: var(--antiquewhite); /* Thank you Hatice */
-  font-family: "Open Sans", sans-serif;
+/* Regards Shows List Display */
+
+.shows-searchbar-flexcontainer {
+  display: flex;
+  justify-content: center;
+  gap: 5em;
 }
+
+.shows-searchbar {
+  margin: 4em 0em;
+}
+
+#shows-query {
+  font-size: 1.4em;
+}
+
+/* The instructions are displayed by animation */
+
+.instructions {
+  background-color: var(--indigo);
+  color: var(--white);
+  margin: 3em 0em;
+  border-radius: 0.25rem; /* 4px; */
+  font-size: 1.5rem; /* 24px; */
+  padding: 0;
+}
+
+.righttext {
+  text-align: right;
+  font-size: 2rem; /* 32px; */
+}
+
+.lefttext {
+  text-align: justify;
+  font-size: 2rem; /* 32px; */
+}
+
+#hideMeAfter15Seconds {
+  animation: hideAnimation 0s ease-in 15s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes hideAnimation {
+  to {
+    visibility: hidden;
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
+
+/* Home Button */
 
 .btn {
   background-color: var(--DodgerBlue);
@@ -46,30 +101,16 @@ body {
   background-color: var(--RoyalBlue);
 }
 
+/* Regards Episode Display */
+
 .showname {
   text-align: center;
   font-family: "Arial Bold";
   font-size: 2em;
 }
 
-.display-message {
-  text-align: center;
-}
-
 .flex-container {
   display: flex;
-}
-
-.flex-container-in-grid {
-  grid-area: flex;
-  display: flex;
-  flex-flow: row wrap;
-  align-content: space-between;
-  justify-content: space-between;
-}
-
-.flex-container-in-grid :nth-child(1n) {
-  width: 50%;
 }
 
 .box {
@@ -91,17 +132,15 @@ body {
   justify-content: space-between;
 }
 
-/* Regards Episode Display */
+.display-message {
+  text-align: center;
+}
 
 .select-and-search {
   font-size: 1.4em;
   margin: 4em 0em;
   display: flex;
-  /* justify-content: space-evenly; */
   justify-content: space-around;
-  /* padding: 3em; */
-  /* align-items: flex-start; */
-  /* padding-right: 3em; */
 }
 
 #show-select-menu {
@@ -113,7 +152,7 @@ body {
   font-size: 1em;
   margin-left: 1.5em;
   margin-right: 3.8em;
-  /* max-width: 21.813em; */
+  max-width: 36.25rem; /* 580px */
 }
 
 .movie-query-div {
@@ -125,56 +164,8 @@ body {
   padding-right: 2em;
 }
 
-/* Regards Shows List Display */
+/* SHOWS LISTING starts here and Episodes Display Grid */
 
-.shows-searchbar-flexcontainer {
-  display: flex;
-  justify-content: center;
-  gap: 5em;
-}
-
-.shows-searchbar {
-  margin: 4em 0em;
-}
-
-#shows-query {
-  font-size: 1.4em;
-}
-
-.instructions {
-  background-color: var(--indigo);
-  color: var(--white);
-  margin: 3em 0em;
-  border-radius: 4px;
-  font-size: 24px;
-  padding: 0px;
-}
-
-.righttext {
-  text-align: right;
-  font-size: 32px;
-}
-
-.lefttext {
-  text-align: justify;
-  font-size: 32px;
-}
-
-#hideMeAfter15Seconds {
-  animation: hideAnimation 0s ease-in 15s;
-  animation-fill-mode: forwards;
-}
-
-@keyframes hideAnimation {
-  to {
-    visibility: hidden;
-    width: 0;
-    height: 0;
-    display: none;
-  }
-}
-
-/* SHOWS LISTING starts here */
 .mainpad {
   padding-left: 3em;
   padding-right: 3em;
@@ -186,6 +177,18 @@ body {
   gap: 3em;
 }
 
+.flex-container-in-grid {
+  grid-area: flex;
+  display: flex;
+  flex-flow: row wrap;
+  align-content: space-between;
+  justify-content: space-between;
+}
+
+.flex-container-in-grid :nth-child(1n) {
+  width: 50%;
+}
+
 .scroll {
   width: 100%;
   overflow-y: auto;
@@ -194,9 +197,9 @@ body {
 .episode-flex {
   display: flex;
   flex-direction: column;
-
   align-items: center;
 }
+
 .episode-title {
   font-size: 1.75em; /* 28px; */
 }
@@ -214,8 +217,7 @@ body {
 }
 
 .footer {
-  margin-top: 3em;
-  margin-left: 3em;
+  margin: 3em 3em 0 3em;
   background-color: var(--twitter-blue);
   color: var(--white);
 }
@@ -239,39 +241,16 @@ body {
 
 .show-entry {
   display: grid;
-  /*grid-template-columns: minmax(min-content, 400px), auto;*/
-  grid-template-columns: minmax(0, 210px) auto calc(50% - 50px);
-  /* grid-template-rows: 210px min-content; */
+  grid-template-columns: minmax(0, 13.125rem) auto calc(50% - 3.125rem); /* minmax(0, 210px) auto calc(50% - 50px); */
   grid-template-rows: max-content;
   grid-template-areas:
-  /*
-    "col1 summary summary summary "
-    "col1 summary summary summary "
-    "col1 website premiered rated "
-    "col1 genres status runtime ";
-    
-    "image summary summary summary "
-    "image summary summary summary "
-    "image website ...... genres "
-    "image premiered ...... status "
-    "image rated ...... runtime"
-    "title title title title";
-
-    "image summary summary summary  summary"
-    "image summary summary summary  summary"
-    "image website website website website"
-    "image genres genres genres genres"
-    "image premiered premiered premiered ......"
-    "image rated  ...... runtime ......"
-    "title title title title title";
-*/
-    "image summary summary summary  summary"
-    "image summary summary summary  summary"
-    "image website website website website"
-    "image genres genres genres genres"
-    "image flex flex flex flex"
-    "image flex flex flex flex"
-    "title title title title title";
+    "image summary  summary summary   summary"
+    "image summary  summary summary   summary"
+    "image website  website website   website"
+    "image genres   genres  genres    genres"
+    "image flex     flex    flex      flex"
+    "image flex     flex    flex      flex"
+    "title title    title   title     title";
 
   column-gap: 2em;
   row-gap: 0em;
@@ -287,8 +266,8 @@ body {
   grid-area: image;
   padding-left: 3em;
   padding-top: var(--space-top);
-  max-width: 210px;
-  max-height: 300px;
+  max-width: 13.125rem; /* 210px; */
+  max-height: 18.75rem; /* 300px; */
 }
 
 .title {

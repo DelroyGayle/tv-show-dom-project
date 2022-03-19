@@ -16,6 +16,7 @@
     <div id="root"></div>
 
     <div class="mainHeading">MOVIES GALORE!</div>
+
     <!-- Shows Search -->
 
     <div class="shows-searchbar-flexcontainer">
@@ -25,9 +26,10 @@
           <p class="righttext">Live Search Bar &#10230;&#10230;&#10230;</p>
           <p>Results are shown as you type. Results narrow as you continue
           typing.<br />Click either the image or the name of the show to display
-          the episodes of the selected show.</p>
+          the episodes of the selected show.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
           <span class="lefttext">&#8650 &#8650 &#8650 &#8650</span>
-      </div></div>
+        </div>
+      </div>
       <div class="shows-searchbar">
         <input
           type="text"
@@ -48,13 +50,15 @@
           </button>
         </div>
         <div class="box"><h2 class="showname"></h2></div>
-        <!-- This is necessary. Based on https://stackoverflow.com/questions/32378953/keep-the-middle-item-centered-when-side-items-have-different-widths -->
+    <!-- This is necessary. Based on https://stackoverflow.com/questions/32378953/keep-the-middle-item-centered-when-side-items-have-different-widths -->
         <div class="box"></div>
       </section>
+
       <!-- Display Info such as the number of episodes 73/73 -->
       <div>
         <p class="display-message"></p>
       </div>
+
       <div class="select-and-search">
         <!-- Dropdown menus -->
         <!-- Show Selector-->
@@ -72,12 +76,16 @@
           />
         </div>
       </div>
+
       <!-- Episodes Display Grid -->
       <section class="mainpad">
         <div class="gridDisplay scroll"></div>
       </section>
     </main>
+
+    <!-- List the Shows -->
     <main class="shows-list"></main>
+
     <!-- FOOTER -->
     <!-- TVMaze.com info -->
     <footer class="footer">
@@ -87,7 +95,7 @@
       <div class="error-messages"></div>
     </footer>
 
-    <!-- Loads a provided function called getOneShow which returns data regarding "Game Of Thrones" -->
+    <!-- Loads a provided function called getAllShows() which returns data regarding 'all available shows' -->
     <script src="shows.js"></script>
 
     <!-- Loads YOUR javascript code -->

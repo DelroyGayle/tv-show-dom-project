@@ -22,6 +22,7 @@
   const FETCHOK = 200;
   const BADURL = 404;
   const SERVER_ERROR = 500;
+  const NO_SUMMARY = "NO SUMMARY TEXT AVAILABLE"
 
   let allShows;
   let allShowsTotal;
@@ -31,7 +32,7 @@
   let saveAllEpisodes;
   let saveShowNumber;
   let globalCount = 0;
-  let showsListFlag = true;     // Indicate if the Shows List is displayed
+  let showsListFlag = true;      // Indicate if the Shows List is displayed
   let showsListFiltered = false; // Indicate if the Shows List is filtered
 
 // Event Listeners
@@ -48,15 +49,15 @@
   episodesSearchBar.value = "";
   let showsSearchText = ""; // this variable needs to be global
   showsSearchBar.value = "";
-  let filterChanges; // Keep track of all changes when filtering the Shows List Display
-  let rememberIdLoc = {}; // Keep tract of all the Nnnn IDs
+  let filterChanges;      // Keep track of all changes when filtering the Shows List Display
+  let rememberIdLoc = {}; // Keep track of all the Nnnn IDs
 
 
   /*** 
   * THERE IS AN OBSCURE BUG WHICH I CANNOT FIGURE OUT TO DO WITH allShows[index].genres
   * FIRSTLY, SOMEWHERE, SOMEHOW, allShows[index].genres IS CHANGED FROM A STRING TO AN ARRAY!!
   * SECONDLY, ITS VALUE GETS CHANGED (AFTER IT HAS BEEN INITIALISED) SOMEHOW, SOMEWHERE?? I JUST CANNOT SEE WHERE!
-  * SO I HAVE GOING TO USE A TOTALLY SEPARATE ARRAY TO HOLD 'genres'
+  * SO I AM GOING TO USE A TOTALLY SEPARATE ARRAY TO HOLD 'genres' i.e. genresTable
   ***/
 
   const genresTable = [];
@@ -137,6 +138,7 @@ function fetchShowAndEpisodes() {
                 }
 
                 else if (status === 404) {
+// For example, the URL for the show title: "Cosmos" with an ID:1127 does not exist: http://api.tvmaze.com/shows/1127                 
                     errorMessages += `<p>404 Error Occurred wuth ${currentShowID}</p>`;
                     update_footer_text(); // Update Footer Text Error Messages
                     hideViews();
@@ -327,16 +329,17 @@ function createAllEpisodes(index) {
     addImage(episodeDiv,source,episodeInfo);
 
     
-    // Show with ID# 3353 (Kyxhr) had a 'null' summary - cater for it
+    // The show with ID# 3353 (Kyxhr) had a 'null' summary - cater for it
+    // Likewise Gintama ID# , etc
     if (!source.summary) // i.e. ensure it is a string
-            source.summary = "";
+            source.summary = NO_SUMMARY;
 
     // Remove all <p></p> then add the text using <span>
     const summary = handle_paragraph(source.summary);
     episodeDiv.appendChild(summary); // add the summary
 
     // add to main content
-    mainDisplayDiv.appendChild(episodeDiv); 
+    mainDisplayDiv.appendChild(episodeDiv);
 }
 
 function addImage(episodeDiv,source,episodeInfo) {
@@ -344,10 +347,19 @@ function addImage(episodeDiv,source,episodeInfo) {
     imageDiv.classList.add('image'); // apply class for padding etc
      
     const img = document.createElement('img');
-    img.src = source.image.medium;
+
+    if (!source.image)
+        img.src = fetchADefaultImage(); // TVMAZE LOGO
+    else
+        img.src = source.image.medium;
+  
     img.alt = episodeInfo;
     imageDiv.appendChild(img); // add the image
     episodeDiv.appendChild(imageDiv);
+}
+
+function fetchADefaultImage() {
+    return "images/tvm-header-logo.png";
 }
 
 // EG Winter is Coming - S01E01
@@ -361,8 +373,8 @@ function fetchEpisodeSeason_Suffix(info) {
 }
 
 function removeHTML(text) {
-  // Remove any <p></p> <br></br>
-  return text.replaceAll(/<\/?(p|br)>/ig,"");
+  // Remove any <p></p> <br></br> <b></b> <i></i> <br />
+  return text.replaceAll(/<\/?([pbi]|br\s*\/?|)>/ig,"");
 }
 
 // Instead of using innerHTML, remove the <p></p> and use innerText instead
@@ -388,7 +400,7 @@ function episodesSearchFunction(useThisValue) {
 
    // filter out matching episodes
    const searchResults = allEpisodes.filter(element => element.name.toLowerCase().includes(lowerCase) ||
-                                                       element.summary.toLowerCase().includes(lowerCase));
+                                                       removeHTML(element.summary).toLowerCase().includes(lowerCase));
    
    if (!searchResults.length) // No match so ignore
             return;
@@ -487,15 +499,15 @@ function showAllEntries() {
     Check whether there is a match?
     If there is no match - hide the display of that Show
     If there is a match then amend the HTML to show the search term as coloured text and display the entry
-    Keep a record of every entry that as had its text coloured in order to restore back to no colour
-    In the end, all that should be displayed are the Show Entries that smatch 'searchText'
+    Keep a record of every entry that as had its text coloured in order to restore back the original text without the colour
+    In the end, all that should be displayed are the Show Entries that match 'searchText'
 */
 function performFilter(searchText) {
            
     filterChanges = {}; // reset
 
     allShows.forEach( (element, index) => {
-            if (! (element.name.toLowerCase().includes(searchText) || element.summary.toLowerCase().includes(searchText) ||
+            if (! (element.name.toLowerCase().includes(searchText) || removeHTML(element.summary).toLowerCase().includes(searchText) ||
                                                                       fetchGenres(index).toLowerCase().includes(searchText)) ) {
                           hideShow(index);     
                           return;                                        
@@ -511,7 +523,8 @@ function performFilter(searchText) {
   /*
   Convert each non alphanumeric character of a string so that it can be used in a regex without it having any special meaning
   For example, . has a special meaning in regular expressions so instead of using \. use \u002E instead
-  Likewise ()^$? ETC - all REGEX METACHARACTERS so use the for \uHHHH instead
+  Likewise ()^$? ETC - all REGEX METACHARACTERS
+  So use the form \uHHHH instead
 
   \uhhhh	Matches a UTF-16 code-unit with the value hhhh (four hexadecimal digits).
   */
@@ -526,7 +539,7 @@ function performFilter(searchText) {
     Remove any possibility of the searchText being part of a HTML tag
     e.g. if the user types 'p' it ought NOT to match <p></p>
 
-    JavaScript does not support regex lookbehind assertions so what follows isc
+    JavaScript does not support regex lookbehind assertions so what follows is
     a convoluted workaround using regex - you have been warned :)
 
     REGEX: <[^>]*(SEARCHTEXT).*?>
@@ -650,7 +663,7 @@ function performFilter(searchText) {
    Search for Genres
    The Genres string is located in the sibling that follows the <strong>Genres: </strong>
    EG
-   PARENT: <p class="theshow-genres"><
+   PARENT: <p class="theshow-genres">
                   <strong>Genres: </strong>
                   <span>Action | Drama | Thriller</span></p>
  */
@@ -706,7 +719,7 @@ function performFilter(searchText) {
  }
 
       /*** 
-       * NOTE: THIS IS A WORKAROUND BECAUSE OF AN OBSCURE BUG WHICH I CANNOT FIGURE OUT
+       * NOTE: THE FUNCTION fetchGenres() IS A WORKAROUND BECAUSE OF AN OBSCURE BUG WHICH I CANNOT FIGURE OUT
        * SOMEWHERE, SOMEHOW, allShows[index].genres IS CHANGED FROM A STRING TO AN ARRAY!!
       ***/
 
@@ -762,7 +775,8 @@ function displaySearchResults(index,source,lowerCase) {
     // change into <span> any occurrence of the search text found within the summary
     // in order to highlight
 
-    text = removeHTML(source.summary); // remove any <p> </p>    
+    text = removeHTML(source.summary); // remove any <p> </p> <b> <i> <br>  
+ 
     processText(text,lowerCase,"",episodeDiv);
    
     mainDisplayDiv.appendChild(episodeDiv);
@@ -971,30 +985,38 @@ function shows_list_setup() {
 
 function createShowEntry(element, index) {
           
-          let theDiv0 = document.createElement("div");
-          theDiv0.setAttribute("class", "theshow-image");
+          let theMainDiv = document.createElement("div");
+          theMainDiv.setAttribute("class", "theshow-image");
 
           let img = document.createElement("img"); // SHOW IMAGE
           img.setAttribute("class", "style-image");
           img.setAttribute("id","IM" + element.id); // I.E. the 'id' for this image will be called for example, for Game of Thrones, IM82
-          // Discovered for example - Show: "Cosmos", ID:1127 has no image!!
+
+/*          
+     Discovered for example - Show: "Cosmos", ID:1127 has no image!!
+     However I have changed the handling of such errors 
           if (!element.image) {
                     let message = `The Show: ${element.name} - ID: ${element.id} has no image. Load Aborted.`; 
                     errorMessages += `<p>${message}</p>`;
                     return false; // Indicate that this entry was not successful
           }
+*/        
 
-          img.src = element.image.medium;
+          if (!element.image)
+                    img.src = "images/tvm-header-logo.png"; // Use Default Logo
+          else   
+                    img.src = element.image.medium;
+
           img.style.cursor = "pointer";
           img.addEventListener("click", getEpisodesPage); // Add a CLICK Listener
 
           const figure = document.createElement("figure");
           figure.append(img);
 
-          theDiv0.append(figure);  
+          theMainDiv.append(figure);  
 
-          let theDiv2 = document.createElement("div");
-          theDiv2.setAttribute("class", "theshow-title");
+          let theTitleDiv = document.createElement("div");
+          theTitleDiv.setAttribute("class", "theshow-title");
           let header = document.createElement("h2"); // SHOWNAME
           header.setAttribute("class", "list-show-name");
           header.setAttribute("id","M" + element.id); // I.E. the 'id' for the Show Name will be called for example, for Game of Thrones, M82
@@ -1002,14 +1024,14 @@ function createShowEntry(element, index) {
           header.style.cursor = "pointer";
           header.addEventListener("click", getEpisodesPage); // Add a CLICK Listener          
 
-          theDiv2.append(header);
+          theTitleDiv.append(header);
 
           let paragraph = document.createElement("p"); // SHOW SUMMARY
           paragraph.innerHTML = element.summary;
 
-          let theDiv1 = document.createElement("div");
-          theDiv1.setAttribute("class", "show-summary");
-          theDiv1.append(paragraph);          
+          let theSummaryDiv = document.createElement("div");
+          theSummaryDiv.setAttribute("class", "show-summary");
+          theSummaryDiv.append(paragraph);          
 
           let website_paragraph = document.createElement("p"); // OFFICIAL WEBSITE
           website_paragraph.setAttribute("class", "theshow-website");
@@ -1105,20 +1127,20 @@ function createShowEntry(element, index) {
           // The number being the index of the allShows array
           showEntryDiv.setAttribute("id","N" + index); 
 
-          showEntryDiv.append(theDiv0);
-          showEntryDiv.append(theDiv2);
-          showEntryDiv.append(theDiv1);
+          showEntryDiv.append(theMainDiv);
+          showEntryDiv.append(theTitleDiv);
+          showEntryDiv.append(theSummaryDiv);
           showEntryDiv.append(website_paragraph);
           showEntryDiv.append(genres_paragraph);
 
-          let flexDiv1 = document.createElement("div");
-          flexDiv1.setAttribute("class", "flex-container-in-grid");         
-          flexDiv1.append(premiered_paragraph);
-          flexDiv1.append(rated_paragraph);
+          let flexDiv = document.createElement("div");
+          flexDiv.setAttribute("class", "flex-container-in-grid");         
+          flexDiv.append(premiered_paragraph);
+          flexDiv.append(rated_paragraph);
 
-          flexDiv1.append(status_paragraph);
-          flexDiv1.append(runtime_paragraph);
-          showEntryDiv.append(flexDiv1);
+          flexDiv.append(status_paragraph);
+          flexDiv.append(runtime_paragraph);
+          showEntryDiv.append(flexDiv);
 
 //          if (globalCount > 1) // All but the top one, remove the top border
 //                  showEntryDiv.style.borderTop = "none";
