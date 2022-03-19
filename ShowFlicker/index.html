@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!-- This file is used in conjunction with showflicker.js to test that the API is working as expected -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TV Show Project | Delroy Gayle (DelroyGayle)</title>
+    <link href="style.css" rel="stylesheet" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <div class="mainHeading">MOVIES GALORE!</div>
+    <!-- Added a field to display the name of the show -->
+    <h2 class="showname"></h2>
+    <!-- Display Info such as the number of episodes 73/73 -->
+    <div>
+      <p class="display-message"></p>
+    </div>
+    <div class="display-info">
+      <!-- Dropdown menus -->
+      <!-- Show Selector-->
+      <select name="show-select-menu" id="show-select-menu"></select>
+      <!-- Episode Selector-->
+      <select name="episode-select-menu" id="episode-select-menu"></select>
+      <!-- Search -->
+      <div class="thesearchbar">
+        <input
+          type="text"
+          id="movie-query"
+          name="q"
+          placeholder="Movies & Episodes Search"
+        />
+      </div>
+    </div>
+    <!-- Episodes Display Grid -->
+    <main class="mainpad">
+      <div class="gridDisplay scroll"></div>
+    </main>
+
+    <!-- TVMaze.com info -->
+    <footer class="footer">
+      <div class="tvmaze-info"></div>
+      <br />
+      <br />
+      <div class="error-messages"></div>
+    </footer>
+
+    <!-- Loads a provided function called getOneShow which returns data regarding "Game Of Thrones" -->
+    <script src="shows.js"></script>
+
+    <!-- Loads YOUR javascript code -->
+    <script src="script.js"></script>
+  </body>
+</html>

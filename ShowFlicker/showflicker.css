@@ -1,0 +1,98 @@
+:root {
+  --cool-gray-9C: #657786;
+  --twitter-blue: #1da1f2;
+  --white: #ffffff;
+  --red: #ff0000;
+  --yellow: #ffff00;
+}
+
+#root {
+  color: var(--red);
+}
+
+.mainHeading {
+  font-size: 4.5em; /* 72px; */
+  text-align: center;
+  color: var(--twitter-blue);
+  font-style: italic;
+  text-decoration: underline;
+}
+
+/* Added a field to display the name of the show */
+.showname {
+  font-size: 2em;
+  text-align: center;
+  font-weight: 400;
+}
+
+body {
+  background: #f2f2f2;
+  font-family: "Open Sans", sans-serif;
+}
+
+.display-info {
+  font-size: 1.4em;
+  margin: 4em 0em;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+#select-menu {
+  font-size: 1em;
+}
+
+#movie-query {
+  font-size: 1em;
+}
+
+.mainpad {
+  padding-left: 3em;
+  padding-right: 3em;
+}
+
+.gridDisplay {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3em;
+}
+
+.scroll {
+  width: 100%;
+  overflow-y: auto;
+}
+
+.episode-title {
+  font-size: 1.75em; /* 28px; */
+}
+
+.episode-text {
+  font-size: 1.25em; /* 20px; */
+}
+
+.blueText {
+  color: var(--twitter-blue);
+}
+
+.blue-border {
+  border: solid var(--twitter-blue) 0.313em; /* 5px */
+}
+
+.footer {
+  margin-top: 3em;
+  margin-left: 3em;
+  background-color: var(--twitter-blue);
+  color: var(--white);
+}
+
+.tvmaze-info a:link {
+  color: var(--yellow);
+}
+
+.tvmaze-info a:visited {
+  color: var(--yellow);
+}
+
+.image {
+  padding-bottom: 1em;
+}

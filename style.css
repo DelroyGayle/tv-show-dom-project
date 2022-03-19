@@ -1,13 +1,28 @@
 :root {
-  --cool-gray-9C: #657786;
   --twitter-blue: #1da1f2;
   --white: #ffffff;
   --red: #ff0000;
   --yellow: #ffff00;
+  --DodgerBlue: #1e90ff;
+  --RoyalBlue: #4169e1;
+  --indigo: #490990;
+  --redtext: #d84141;
+  --antiquewhite: rgb(250, 235, 215);
+  --space-top: 1em;
 }
 
-#root {
-  color: var(--red);
+/* Global Reset */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f2f2f2;
+  background-color: var(--antiquewhite); /* Thank you Hatice */
+  font-family: "Open Sans", sans-serif;
 }
 
 .mainHeading {
@@ -18,26 +33,138 @@
   text-decoration: underline;
 }
 
-body {
-  background: #f2f2f2;
-  font-family: "Open Sans", sans-serif;
+/* Regards Shows List Display */
+
+.shows-searchbar-flexcontainer {
+  display: flex;
+  justify-content: center;
+  gap: 5em;
 }
 
-.display-info {
+.shows-searchbar {
+  margin: 4em 0em;
+}
+
+#shows-query {
+  font-size: 1.4em;
+}
+
+/* The instructions are displayed by animation */
+
+.instructions {
+  background-color: var(--indigo);
+  color: var(--white);
+  margin: 3em 0em;
+  border-radius: 0.25rem; /* 4px; */
+  font-size: 1.5rem; /* 24px; */
+  padding: 0;
+}
+
+.righttext {
+  text-align: right;
+  font-size: 2rem; /* 32px; */
+}
+
+.lefttext {
+  text-align: justify;
+  font-size: 2rem; /* 32px; */
+}
+
+#hideMeAfter15Seconds {
+  animation: hideAnimation 0s ease-in 15s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes hideAnimation {
+  to {
+    visibility: hidden;
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
+
+/* Home Button */
+
+.btn {
+  background-color: var(--DodgerBlue);
+  border: none;
+  color: var(--white);
+  margin-top: 0.375em; /* 6px; */
+  padding: 0.75em 1em; /* 12px 16px; */
+  font-size: 1.75em; /* 28px; */
+  cursor: pointer;
+}
+
+/* Darker background on mouse-over */
+.btn:hover {
+  background-color: var(--RoyalBlue);
+}
+
+/* Regards Episode Display */
+
+.showname {
+  text-align: center;
+  font-family: "Arial Bold";
+  font-size: 2em;
+}
+
+.flex-container {
+  display: flex;
+}
+
+.box {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+.box:first-child > span {
+  margin-right: auto;
+}
+
+.box:last-child > span {
+  margin-left: auto;
+}
+
+.home {
+  display: flex;
+  justify-content: space-between;
+}
+
+.display-message {
+  text-align: center;
+}
+
+.select-and-search {
   font-size: 1.4em;
   margin: 4em 0em;
   display: flex;
-  justify-content: space-evenly;
-  align-items: center;
+  justify-content: space-around;
 }
 
-#select-menu {
+#show-select-menu {
   font-size: 1em;
+  margin-left: 1.5em;
+}
+
+#episode-select-menu {
+  font-size: 1em;
+  margin-left: 1.5em;
+  margin-right: 3.8em;
+  max-width: 36.25rem; /* 580px */
+}
+
+.movie-query-div {
+  padding-right: 4em;
 }
 
 #movie-query {
   font-size: 1em;
+  padding-right: 2em;
 }
+
+/* SHOWS LISTING starts here and Episodes Display Grid */
 
 .mainpad {
   padding-left: 3em;
@@ -50,9 +177,27 @@ body {
   gap: 3em;
 }
 
+.flex-container-in-grid {
+  grid-area: flex;
+  display: flex;
+  flex-flow: row wrap;
+  align-content: space-between;
+  justify-content: space-between;
+}
+
+.flex-container-in-grid :nth-child(1n) {
+  width: 50%;
+}
+
 .scroll {
   width: 100%;
   overflow-y: auto;
+}
+
+.episode-flex {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .episode-title {
@@ -63,17 +208,16 @@ body {
   font-size: 1.25em; /* 20px; */
 }
 
-.blueText {
-  color: var(--twitter-blue);
+.colouredtext {
+  color: var(--redtext);
 }
 
 .blue-border {
-  border: solid var(--twitter-blue) 0.313em; /* 5px */
+  border: solid var(--twitter-blue) 0.6em;
 }
 
 .footer {
-  margin-top: 3em;
-  margin-left: 3em;
+  margin: 3em 3em 0 3em;
   background-color: var(--twitter-blue);
   color: var(--white);
 }
@@ -88,4 +232,101 @@ body {
 
 .image {
   padding-bottom: 1em;
+}
+
+.shows-list {
+  padding-left: 3em;
+  padding-right: 3em;
+}
+
+.show-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 13.125rem) auto calc(50% - 3.125rem); /* minmax(0, 210px) auto calc(50% - 50px); */
+  grid-template-rows: max-content;
+  grid-template-areas:
+    "image summary  summary summary   summary"
+    "image summary  summary summary   summary"
+    "image website  website website   website"
+    "image genres   genres  genres    genres"
+    "image flex     flex    flex      flex"
+    "image flex     flex    flex      flex"
+    "title title    title   title     title";
+
+  column-gap: 2em;
+  row-gap: 0em;
+  border: 0.125em solid var(--twitter-blue);
+}
+
+.first-column {
+  grid-area: col1;
+  padding-left: 3em;
+}
+
+.theshow-image {
+  grid-area: image;
+  padding-left: 3em;
+  padding-top: var(--space-top);
+  max-width: 13.125rem; /* 210px; */
+  max-height: 18.75rem; /* 300px; */
+}
+
+.title {
+  grid-area: title;
+  padding-left: 3em;
+}
+
+.list-show-name {
+  font-family: "Arial Bold";
+  font-size: 2em;
+  text-align: left;
+  padding-top: 1em;
+  padding-left: 1.6em;
+  padding-bottom: 1em;
+}
+
+.show-summary {
+  grid-area: summary;
+  padding-top: var(--space-top);
+  padding-right: 2em;
+  font-size: 1.2em;
+}
+
+.theshow-website {
+  padding-top: var(--space-top);
+  grid-area: website;
+}
+
+.theshow-premiered {
+  padding-top: var(--space-top);
+  grid-area: premiered;
+}
+
+.theshow-rated {
+  padding-top: var(--space-top);
+  grid-area: rated;
+}
+
+.theshow-genres {
+  padding-top: var(--space-top);
+  grid-area: genres;
+}
+
+.theshow-status {
+  padding-top: var(--space-top);
+  grid-area: status;
+}
+
+.theshow-runtime {
+  padding-top: var(--space-top);
+  grid-area: runtime;
+}
+
+.theshow-title {
+  grid-area: title;
+}
+
+.style-image {
+  max-width: 100%;
+  object-fit: contain;
+  grid-area: image;
 }
